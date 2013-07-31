@@ -14,12 +14,15 @@ namespace CommonWell.Tools
     /// </summary>
     public partial class MainWindow : Window
     {
+        private string _x509CertificatePath = "No Certificate";
+
         public MainWindow()
         {
             InitializeComponent();
             PopulateSubjectRoles();
             PopulatePurposeOfUse();
             DateExpiration.SelectedDate = DateTime.Now.AddDays(2);
+            CertificateStatus.Content = _x509CertificatePath;
         }
 
         private void PopulateSubjectRoles()
@@ -92,7 +95,7 @@ namespace CommonWell.Tools
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var certificate =
-                new X509Certificate2(CertificatePath.Content.ToString(), TxtPassphrase.Text);
+                new X509Certificate2(_x509CertificatePath, TxtPassphrase.Text);
 
             DateTime now = DateTime.UtcNow;
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -118,15 +121,14 @@ namespace CommonWell.Tools
 
         private void ChooseCertificate_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog {DefaultExt = ".pfx", Filter = "Certificates (.pfx)|*.pfx"};
+            var dlg = new Microsoft.Win32.OpenFileDialog {DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12"};
             bool? result = dlg.ShowDialog();
 
-            // Get the selected file name and display in a TextBox
             if (result == true)
             {
-                // Open document
                 string filename = dlg.FileName;
-                CertificatePath.Content = filename;
+                _x509CertificatePath = filename;
+                CertificateStatus.Content = System.IO.Path.GetFileName(_x509CertificatePath);
             }
         }
 

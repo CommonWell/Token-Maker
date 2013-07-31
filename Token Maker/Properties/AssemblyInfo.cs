@@ -7,12 +7,12 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("JWT Token Maker")]
+[assembly: AssemblyTitle("Token Maker")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("McKesson")]
-[assembly: AssemblyProduct("JWT Token Maker")]
-[assembly: AssemblyCopyright("Copyright © McKesson 2013")]
+[assembly: AssemblyCompany("CommonWell Health Alliance")]
+[assembly: AssemblyProduct("CommonWell")]
+[assembly: AssemblyCopyright("Copyright © CommonWell Health Alliance 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
