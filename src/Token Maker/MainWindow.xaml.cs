@@ -8,7 +8,6 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Xml;
 using CommonWell.Tools.Properties;
@@ -30,6 +29,11 @@ namespace CommonWell.Tools
             PopulateSubjectRoles();
             PopulatePurposeOfUse();
             DateExpiration.Value = DateTime.Now.AddMinutes(5).ToUniversalTime();
+            SetControlsFromSettings();
+        }
+
+        private void SetControlsFromSettings()
+        {
             CertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
             TxtPassphrase.Text = Settings.Default.Passphrase;
         }
@@ -203,6 +207,11 @@ namespace CommonWell.Tools
 
         private void TxtPassphrase_LostFocus(object sender, RoutedEventArgs e)
         {
+            SavePassphrase();
+        }
+
+        private void SavePassphrase()
+        {
             if (TxtPassphrase.Text != Settings.Default.Passphrase)
             {
                 Settings.Default.Passphrase = TxtPassphrase.Text;
@@ -270,6 +279,22 @@ namespace CommonWell.Tools
         {
             ToggleSignSamlToken.Content = "Unsigned Token";
             ToggleSignSamlToken.Foreground = new SolidColorBrush(Colors.Red);
+        }
+
+        private void TxtPassphrase_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            SavePassphrase();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Settings.Default.Save();
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.Default.Reset();
+            SetControlsFromSettings();
         }
     }
 }
