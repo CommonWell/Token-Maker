@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+using System.Xml;
+using CommonWell.Tools.Properties;
+using CommonWell.Tools.SAML;
+using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace CommonWell.Tools
 {
@@ -14,15 +24,14 @@ namespace CommonWell.Tools
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string _x509CertificatePath = "No Certificate";
-
         public MainWindow()
         {
             InitializeComponent();
             PopulateSubjectRoles();
             PopulatePurposeOfUse();
-            DateExpiration.SelectedDate = DateTime.Now.AddDays(2);
-            CertificateStatus.Content = _x509CertificatePath;
+            DateExpiration.Value = DateTime.Now.AddMinutes(5).ToUniversalTime();
+            CertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
+            TxtPassphrase.Text = Settings.Default.Passphrase;
         }
 
         private void PopulateSubjectRoles()
@@ -82,37 +91,79 @@ namespace CommonWell.Tools
         {
             try
             {
-            TxtTokenString.Text = BuildToken();
+                TxtTokenString.Text = BuildJwtToken();
+                DecodeJwtToken();
             }
             catch (Exception err)
             {
-                TxtTokenString.Text = err.Message;
+                MessageBox.Show(err.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private string BuildToken()
+        private void Decode_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DecodeJwtToken();
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SAML_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TextBoxSamlToken.Text = BuildSamlToken();
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void DecodeJwtToken()
+        {
+            TxtSignature.Clear();
+            TxtHeader.Clear();
+            TxtBody.Clear();
+            ParseToken(TxtTokenString.Text);
+        }
+
+        private void ParseToken(string token)
+        {
+            string[] parts = token.Split('.');
+            JObject jsonPart = JObject.Parse(DecodeFrom64(parts[0]));
+            TxtHeader.Text = jsonPart.ToString(Formatting.Indented);
+
+            jsonPart = JObject.Parse(DecodeFrom64(parts[1]));
+            TxtBody.Text = jsonPart.ToString(Formatting.Indented);
+
+            TxtSignature.Text = parts[2];
+        }
+
+        private string BuildJwtToken()
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-
             var certificate =
-                new X509Certificate2(_x509CertificatePath, TxtPassphrase.Text);
-
-            DateTime now = DateTime.UtcNow;
+                new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
             var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim("Subject ID", TxtSubject.Text),
-                            new Claim("Subject Organization", TxtOrganization.Text),
-                            new Claim("Subject Role", CmbSubjectRole.SelectedValue.ToString(), "CE", "SNOMED_CT"),
-                            new Claim("Purpose of Use", CmbPurposeOfUse.SelectedValue.ToString(), "nhin-purpose"),
-                            new Claim("Organization ID", TxtOrganizationId.Text),
-                            new Claim("National Provider Identifier", "1245319598"),
+                            new Claim("subjectId", TxtSubject.Text),
+                            new Claim("subjectRole", CmbSubjectRole.SelectedValue.ToString()),
+                            new Claim("organization", TxtOrganization.Text),
+                            new Claim("organizationId", TxtOrganizationId.Text),
+                            new Claim("purposeOfUse", CmbPurposeOfUse.SelectedValue.ToString()),
+                            new Claim("npi", TxtNpi.Text)
                         }),
                     TokenIssuerName = "self",
                     TokenType = "JWT",
                     AppliesToAddress = "urn:commonwellalliance.org",
-                    Lifetime = new Lifetime(now, DateExpiration.SelectedDate),
+                    Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
                     SigningCredentials = new X509SigningCredentials(certificate)
                 };
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -121,32 +172,104 @@ namespace CommonWell.Tools
 
         private void ChooseCertificate_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog {DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12"};
+            var dlg = new OpenFileDialog { DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12" };
             bool? result = dlg.ShowDialog();
 
             if (result == true)
             {
-                string filename = dlg.FileName;
-                _x509CertificatePath = filename;
-                CertificateStatus.Content = System.IO.Path.GetFileName(_x509CertificatePath);
+                Settings.Default.CertificatePath = dlg.FileName;
+                CertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
             }
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
+            Settings.Default.Save();
             Close();
         }
-    }
 
-    internal class ComboBoxPairs
-    {
-        public ComboBoxPairs(string key, string value)
+        private static string DecodeFrom64(string encodedData)
         {
-            Key = key;
-            Value = value;
+            int padding = encodedData.Length % 4;
+            if (padding > 0)
+            {
+                encodedData += new string('=', (4 - padding));
+            }
+            byte[] encodedDataAsBytes = Convert.FromBase64String(encodedData);
+            string returnValue = Encoding.ASCII.GetString(encodedDataAsBytes);
+
+            return returnValue;
         }
 
-        public string Key { get; set; }
-        public string Value { get; set; }
+        private void TxtPassphrase_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (TxtPassphrase.Text != Settings.Default.Passphrase)
+            {
+                Settings.Default.Passphrase = TxtPassphrase.Text;
+            }
+        }
+
+        private string BuildSamlToken()
+        {
+            var tokenHandler = new CustomSaml2SecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new[]
+                        {
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:subject-id", TxtSubject.Text),
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization", TxtOrganization.Text),
+                            new Claim("urn:oasis:names:tc:xacml:2.0:subject:role",
+                                      new RoleClaim(CmbSubjectRole.Text, CmbSubjectRole.SelectedValue.ToString())
+                                          .ToString()),
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:purposeofuse",
+                                      new PurposeOfUseClaim(CmbPurposeOfUse.Text,
+                                                            CmbPurposeOfUse.SelectedValue.ToString()).ToString()),
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization-id", TxtOrganizationId.Text),
+                            new Claim("urn:oasis:names:tc:xspa:2.0:subject:npi", TxtNpi.Text)
+                        }),
+                    TokenIssuerName = "self",
+                    TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0",
+                    AppliesToAddress = "urn:commonwellalliance.org",
+                    Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value)
+                };
+            if (ToggleSignSamlToken.IsChecked != null && (bool) ToggleSignSamlToken.IsChecked)
+            {
+                var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
+                tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
+            }
+            var token = tokenHandler.CreateToken(tokenDescriptor) as Saml2SecurityToken;
+            var settings = new XmlWriterSettings();
+            settings.Indent = true;
+            var sbuilder = new StringBuilder();
+            using (XmlWriter writer = XmlWriter.Create(sbuilder, settings))
+            {
+                if (token != null) tokenHandler.WriteToken(writer, token);
+            }
+            return sbuilder.ToString();
+        }
+
+        internal class ComboBoxPairs
+        {
+            public ComboBoxPairs(string key, string value)
+            {
+                Key = key;
+                Value = value;
+            }
+
+            public string Key { get; set; }
+            public string Value { get; set; }
+        }
+
+        private void ToggleSignSAMLToken_Checked(object sender, RoutedEventArgs e)
+        {
+            ToggleSignSamlToken.Content = "Signed Token";
+            ToggleSignSamlToken.Foreground = new SolidColorBrush(Colors.Green);
+        }
+
+        private void ToggleSignSamlToken_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ToggleSignSamlToken.Content = "Unsigned Token";
+            ToggleSignSamlToken.Foreground = new SolidColorBrush(Colors.Red);
+        }
     }
 }

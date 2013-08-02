@@ -22,5 +22,29 @@ namespace CommonWell.Tools.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("No Certificate")]
+        public string CertificatePath {
+            get {
+                return ((string)(this["CertificatePath"]));
+            }
+            set {
+                this["CertificatePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Passphrase {
+            get {
+                return ((string)(this["Passphrase"]));
+            }
+            set {
+                this["Passphrase"] = value;
+            }
+        }
     }
 }

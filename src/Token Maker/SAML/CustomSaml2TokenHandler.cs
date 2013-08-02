@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens;
-using System.Linq;
+﻿using System.IdentityModel.Tokens;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace CommonWell.Tools.SAML
@@ -21,14 +17,19 @@ namespace CommonWell.Tools.SAML
             sb.Append(value);
             sb.Append("</a>");
             byte[] rawValue = new UTF8Encoding().GetBytes(sb.ToString());
-            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(rawValue, XmlDictionaryReaderQuotas.Max);
-            reader.ReadStartElement("a");
-            while (reader.NodeType != XmlNodeType.EndElement || (reader.NodeType == XmlNodeType.EndElement && reader.Name != "a"))
+            using (
+                XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(rawValue,
+                                                                                  XmlDictionaryReaderQuotas.Max))
             {
-                writer.WriteNode(reader, false);
+                reader.ReadStartElement("a");
+                while (reader.NodeType != XmlNodeType.EndElement ||
+                       (reader.NodeType == XmlNodeType.EndElement && reader.Name != "a"))
+                {
+                    writer.WriteNode(reader, false);
+                }
+                reader.ReadEndElement();
+                reader.Close();
             }
-            reader.ReadEndElement();
-            reader.Close();
         }
     }
 }
