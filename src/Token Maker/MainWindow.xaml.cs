@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
@@ -8,7 +9,7 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls;
 using System.Xml;
 using CommonWell.Tools.Properties;
 using CommonWell.Tools.SAML;
@@ -21,7 +22,7 @@ namespace CommonWell.Tools
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         public MainWindow()
         {
@@ -34,23 +35,24 @@ namespace CommonWell.Tools
 
         private void SetControlsFromSettings()
         {
-            CertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
-            TxtPassphrase.Text = Settings.Default.Passphrase;
+            LabelCertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
+            TextBoxPassphrase.Text = Settings.Default.Passphrase;
         }
 
         private void PopulateSubjectRoles()
         {
+            // Common roles with associated SNOMED codes
             var subjectRoles = new List<ComboBoxPairs>
                 {
                     new ComboBoxPairs("Medical doctor", "112247003"),
                     new ComboBoxPairs("Hospital nurse", "394618009"),
-                    new ComboBoxPairs("Pharmacist", " 46255001"),
-                    new ComboBoxPairs("Admnistrator", " 308050009")
+                    new ComboBoxPairs("Pharmacist", "46255001"),
+                    new ComboBoxPairs("Admnistrator", "308050009")
                 };
-            CmbSubjectRole.ItemsSource = subjectRoles;
-            CmbSubjectRole.DisplayMemberPath = "Key";
-            CmbSubjectRole.SelectedValuePath = "Value";
-            CmbSubjectRole.SelectedItem = subjectRoles.First();
+            ComboBoxSubjectRole.ItemsSource = subjectRoles;
+            ComboBoxSubjectRole.DisplayMemberPath = "Key";
+            ComboBoxSubjectRole.SelectedValuePath = "Value";
+            ComboBoxSubjectRole.SelectedItem = subjectRoles.First();
         }
 
         private void PopulatePurposeOfUse()
@@ -85,17 +87,21 @@ namespace CommonWell.Tools
                     new ComboBoxPairs("Insurance/Disability coverage", "COVERAGE"),
                     new ComboBoxPairs("Request of the individual", "REQUEST")
                 };
-            CmbPurposeOfUse.ItemsSource = purposes;
-            CmbPurposeOfUse.DisplayMemberPath = "Key";
-            CmbPurposeOfUse.SelectedValuePath = "Value";
-            CmbPurposeOfUse.SelectedItem = purposes.First();
+            ComboBoxPurposeOfUse.ItemsSource = purposes;
+            ComboBoxPurposeOfUse.DisplayMemberPath = "Key";
+            ComboBoxPurposeOfUse.SelectedValuePath = "Value";
+            ComboBoxPurposeOfUse.SelectedItem = purposes.First();
         }
 
-        private void Encode_Click(object sender, RoutedEventArgs e)
+        private void EncodeJwt_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                TxtTokenString.Text = BuildJwtToken();
+                TextBoxJwtSignature.Clear();
+                TextBoxJwtHeader.Clear();
+                TextBoxJwtBody.Clear();
+                if (!IsCertificateLoaded()) return;
+                TextBoxJwtToken.Text = BuildJwtToken();
                 DecodeJwtToken();
             }
             catch (Exception err)
@@ -104,10 +110,11 @@ namespace CommonWell.Tools
             }
         }
 
-        private void Decode_Click(object sender, RoutedEventArgs e)
+        private void DecodeJwt_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                if (!IsCertificateLoaded()) return;
                 DecodeJwtToken();
             }
             catch (Exception err)
@@ -120,6 +127,7 @@ namespace CommonWell.Tools
         {
             try
             {
+                if (!IsCertificateLoaded()) return;
                 TextBoxSamlToken.Text = BuildSamlToken();
             }
             catch (Exception err)
@@ -128,24 +136,36 @@ namespace CommonWell.Tools
             }
         }
 
+        private static bool IsCertificateLoaded()
+        {
+            bool returnValue = true;
+            if (Path.IsPathRooted(Settings.Default.CertificatePath) == false)
+            {
+                MessageBox.Show("Select an X.509 Certificate", "X.509 Certificate Required", MessageBoxButton.OK,
+                                MessageBoxImage.Exclamation);
+                returnValue = false;
+            }
+            return returnValue;
+        }
+
         private void DecodeJwtToken()
         {
-            TxtSignature.Clear();
-            TxtHeader.Clear();
-            TxtBody.Clear();
-            ParseToken(TxtTokenString.Text);
+            TextBoxJwtSignature.Clear();
+            TextBoxJwtHeader.Clear();
+            TextBoxJwtBody.Clear();
+            ParseToken(TextBoxJwtToken.Text);
         }
 
         private void ParseToken(string token)
         {
             string[] parts = token.Split('.');
-            JObject jsonPart = JObject.Parse(DecodeFrom64(parts[0]));
-            TxtHeader.Text = jsonPart.ToString(Formatting.Indented);
+            JObject jsonPart = JObject.Parse(DecodeFromBase64(parts[0]));
+            TextBoxJwtHeader.Text = jsonPart.ToString(Formatting.Indented);
 
-            jsonPart = JObject.Parse(DecodeFrom64(parts[1]));
-            TxtBody.Text = jsonPart.ToString(Formatting.Indented);
+            jsonPart = JObject.Parse(DecodeFromBase64(parts[1]));
+            TextBoxJwtBody.Text = jsonPart.ToString(Formatting.Indented);
 
-            TxtSignature.Text = parts[2];
+            TextBoxJwtSignature.Text = parts[2];
         }
 
         private string BuildJwtToken()
@@ -157,12 +177,12 @@ namespace CommonWell.Tools
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim("subjectId", TxtSubject.Text),
-                            new Claim("subjectRole", CmbSubjectRole.SelectedValue.ToString()),
-                            new Claim("organization", TxtOrganization.Text),
-                            new Claim("organizationId", TxtOrganizationId.Text),
-                            new Claim("purposeOfUse", CmbPurposeOfUse.SelectedValue.ToString()),
-                            new Claim("npi", TxtNpi.Text)
+                            new Claim("subjectId", TextBoxSubject.Text),
+                            new Claim("subjectRole", ComboBoxSubjectRole.SelectedValue.ToString()),
+                            new Claim("organization", TextBoxOrganization.Text),
+                            new Claim("organizationId", TextBoxOrganizationId.Text),
+                            new Claim("purposeOfUse", ComboBoxPurposeOfUse.SelectedValue.ToString()),
+                            new Claim("npi", TextBoxNpi.Text)
                         }),
                     TokenIssuerName = "self",
                     TokenType = "JWT",
@@ -176,13 +196,13 @@ namespace CommonWell.Tools
 
         private void ChooseCertificate_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog { DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12" };
+            var dlg = new OpenFileDialog {DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12"};
             bool? result = dlg.ShowDialog();
 
             if (result == true)
             {
                 Settings.Default.CertificatePath = dlg.FileName;
-                CertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
+                LabelCertificateStatus.Content = Path.GetFileName(Settings.Default.CertificatePath);
             }
         }
 
@@ -192,7 +212,7 @@ namespace CommonWell.Tools
             Close();
         }
 
-        private static string DecodeFrom64(string encodedData)
+        private static string DecodeFromBase64(string encodedData)
         {
             int padding = encodedData.Length % 4;
             if (padding > 0)
@@ -212,9 +232,9 @@ namespace CommonWell.Tools
 
         private void SavePassphrase()
         {
-            if (TxtPassphrase.Text != Settings.Default.Passphrase)
+            if (TextBoxPassphrase.Text != Settings.Default.Passphrase)
             {
-                Settings.Default.Passphrase = TxtPassphrase.Text;
+                Settings.Default.Passphrase = TextBoxPassphrase.Text;
             }
         }
 
@@ -225,36 +245,50 @@ namespace CommonWell.Tools
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:subject-id", TxtSubject.Text),
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization", TxtOrganization.Text),
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:subject-id", TextBoxSubject.Text),
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization", TextBoxOrganization.Text),
                             new Claim("urn:oasis:names:tc:xacml:2.0:subject:role",
-                                      new RoleClaim(CmbSubjectRole.Text, CmbSubjectRole.SelectedValue.ToString())
+                                      new RoleClaim(ComboBoxSubjectRole.Text,
+                                                    ComboBoxSubjectRole.SelectedValue.ToString())
                                           .ToString()),
                             new Claim("urn:oasis:names:tc:xspa:1.0:subject:purposeofuse",
-                                      new PurposeOfUseClaim(CmbPurposeOfUse.Text,
-                                                            CmbPurposeOfUse.SelectedValue.ToString()).ToString()),
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization-id", TxtOrganizationId.Text),
-                            new Claim("urn:oasis:names:tc:xspa:2.0:subject:npi", TxtNpi.Text)
+                                      new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text,
+                                                            ComboBoxPurposeOfUse.SelectedValue.ToString()).ToString()),
+                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization-id", TextBoxOrganizationId.Text)
+                            ,
+                            new Claim("urn:oasis:names:tc:xspa:2.0:subject:npi", TextBoxNpi.Text)
                         }),
                     TokenIssuerName = "self",
                     TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0",
                     AppliesToAddress = "urn:commonwellalliance.org",
                     Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value)
                 };
-            if (ToggleSignSamlToken.IsChecked != null && (bool) ToggleSignSamlToken.IsChecked)
-            {
-                var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
-                tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
-            }
+            var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
+            tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
             var token = tokenHandler.CreateToken(tokenDescriptor) as Saml2SecurityToken;
-            var settings = new XmlWriterSettings();
-            settings.Indent = true;
+            var settings = new XmlWriterSettings {Indent = true};
             var sbuilder = new StringBuilder();
-            using (XmlWriter writer = XmlWriter.Create(sbuilder, settings))
+            using (var writer = XmlWriter.Create(sbuilder, settings))
             {
                 if (token != null) tokenHandler.WriteToken(writer, token);
             }
             return sbuilder.ToString();
+        }
+
+        private void TxtPassphrase_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            SavePassphrase();
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            Settings.Default.Save();
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.Default.Reset();
+            SetControlsFromSettings();
         }
 
         internal class ComboBoxPairs
@@ -267,34 +301,6 @@ namespace CommonWell.Tools
 
             public string Key { get; set; }
             public string Value { get; set; }
-        }
-
-        private void ToggleSignSAMLToken_Checked(object sender, RoutedEventArgs e)
-        {
-            ToggleSignSamlToken.Content = "Signed Token";
-            ToggleSignSamlToken.Foreground = new SolidColorBrush(Colors.Green);
-        }
-
-        private void ToggleSignSamlToken_Unchecked(object sender, RoutedEventArgs e)
-        {
-            ToggleSignSamlToken.Content = "Unsigned Token";
-            ToggleSignSamlToken.Foreground = new SolidColorBrush(Colors.Red);
-        }
-
-        private void TxtPassphrase_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            SavePassphrase();
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            Settings.Default.Save();
-        }
-
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            Settings.Default.Reset();
-            SetControlsFromSettings();
         }
     }
 }

@@ -2,11 +2,6 @@
 
 namespace CommonWell.Tools.SAML
 {
-    //  codeSystemName="SNOMED CT" displayName="Medical doctor"/>
-    /// <summary>
-    ///     <Role xmlns="urn:hl7-org:v3" xsi:type="CE" code="112247003"
-    ///         codeSystem="2.16.840.1.113883.6.96"
-    /// </summary>
     public class RoleClaim
     {
         public string Code;
@@ -22,7 +17,7 @@ namespace CommonWell.Tools.SAML
         public override string ToString()
         {
             const string template =
-                @"<Role xmlns=""urn:hl7-org:v3"" type=""hl7:CE"" code=""{0}"" codeSystem=""2.16.840.1.113883.6.96"" codeSystemName=""SNOMED CT"" displayName=""{1}""/>";
+                @"<Role xmlns=""urn:hl7-org:v3"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:type=""CE"" code=""{0}"" codeSystem=""2.16.840.1.113883.6.96"" codeSystemName=""SNOMED_CT"" displayName=""{1}""/>";
             return String.Format(template, Code, DisplayName);
         }
     }

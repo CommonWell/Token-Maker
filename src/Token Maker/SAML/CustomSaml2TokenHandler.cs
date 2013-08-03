@@ -4,6 +4,9 @@ using System.Xml;
 
 namespace CommonWell.Tools.SAML
 {
+    /// <summary>
+    /// Custom SAML2 Security Token Handler supporting complex attributes.
+    /// </summary>
     public class CustomSaml2SecurityTokenHandler : Saml2SecurityTokenHandler
     {
         public override bool CanValidateToken
@@ -17,9 +20,7 @@ namespace CommonWell.Tools.SAML
             sb.Append(value);
             sb.Append("</a>");
             byte[] rawValue = new UTF8Encoding().GetBytes(sb.ToString());
-            using (
-                XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(rawValue,
-                                                                                  XmlDictionaryReaderQuotas.Max))
+            using (var reader = XmlDictionaryReader.CreateTextReader(rawValue, XmlDictionaryReaderQuotas.Max))
             {
                 reader.ReadStartElement("a");
                 while (reader.NodeType != XmlNodeType.EndElement ||
