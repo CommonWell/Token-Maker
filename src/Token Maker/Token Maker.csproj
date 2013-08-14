@@ -104,6 +104,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="XspaClaimTypes.cs" />
     <Compile Include="SAML\PurposeOfUseClaim.cs" />
     <Compile Include="SAML\RoleClaim.cs" />
     <Compile Include="SAML\CustomSaml2TokenHandler.cs" />
