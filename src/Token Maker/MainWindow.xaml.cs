@@ -177,16 +177,16 @@ namespace CommonWell.Tools
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim("subjectId", TextBoxSubject.Text),
-                            new Claim("subjectRole", ComboBoxSubjectRole.SelectedValue.ToString()),
-                            new Claim("organization", TextBoxOrganization.Text),
-                            new Claim("organizationId", TextBoxOrganizationId.Text),
-                            new Claim("purposeOfUse", ComboBoxPurposeOfUse.SelectedValue.ToString()),
-                            new Claim("npi", TextBoxNpi.Text)
+                            new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                            new Claim(XspaClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
+                            new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                            new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString()),
+                            new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
                         }),
                     TokenIssuerName = "self",
                     TokenType = "JWT",
-                    AppliesToAddress = "urn:commonwellalliance.org",
+                    AppliesToAddress = XspaClaimTypes.AppliesToAddress,
                     Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
                     SigningCredentials = new X509SigningCredentials(certificate)
                 };
@@ -245,22 +245,22 @@ namespace CommonWell.Tools
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:subject-id", TextBoxSubject.Text),
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization", TextBoxOrganization.Text),
-                            new Claim("urn:oasis:names:tc:xacml:2.0:subject:role",
+                            new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                            new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                            new Claim(XspaClaimTypes.SubjectRole,
                                       new RoleClaim(ComboBoxSubjectRole.Text,
                                                     ComboBoxSubjectRole.SelectedValue.ToString())
                                           .ToString()),
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:purposeofuse",
+                            new Claim(XspaClaimTypes.PurposeOfUse,
                                       new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text,
                                                             ComboBoxPurposeOfUse.SelectedValue.ToString()).ToString()),
-                            new Claim("urn:oasis:names:tc:xspa:1.0:subject:organization-id", TextBoxOrganizationId.Text)
+                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text)
                             ,
-                            new Claim("urn:oasis:names:tc:xspa:2.0:subject:npi", TextBoxNpi.Text)
+                            new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
                         }),
                     TokenIssuerName = "self",
                     TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0",
-                    AppliesToAddress = "urn:commonwellalliance.org",
+                    AppliesToAddress = XspaClaimTypes.AppliesToAddress,
                     Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value)
                 };
             var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
