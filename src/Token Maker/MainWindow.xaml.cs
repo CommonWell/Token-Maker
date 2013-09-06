@@ -1,4 +1,14 @@
-﻿using System;
+﻿// ====================================================================
+// Solution: Token Maker
+// Project: Token Maker
+// File: MainWindow.xaml.cs
+//  
+// Created: 07-31-2013
+//  
+// (c) 2013 RelayHealth and its affiliates. All rights reserved.
+// ====================================================================
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -6,13 +16,13 @@ using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml;
 using CommonWell.Tools.Properties;
-using CommonWell.Tools.SAML;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using Formatting = Newtonsoft.Json.Formatting;
@@ -29,6 +39,8 @@ namespace CommonWell.Tools
             InitializeComponent();
             PopulateSubjectRoles();
             PopulatePurposeOfUse();
+            PopulateAlgorithms();
+            PopulateSAMLConfirmations();
             DateExpiration.Value = DateTime.Now.AddMinutes(5).ToUniversalTime();
             SetControlsFromSettings();
         }
@@ -53,6 +65,38 @@ namespace CommonWell.Tools
             ComboBoxSubjectRole.DisplayMemberPath = "Key";
             ComboBoxSubjectRole.SelectedValuePath = "Value";
             ComboBoxSubjectRole.SelectedItem = subjectRoles.First();
+        }
+
+        private void PopulateSAMLConfirmations()
+        {
+            var confirmations = new List<ComboBoxPairs>
+                {
+                    new ComboBoxPairs("Bearer", "bearer"),
+                    new ComboBoxPairs("Holder-of-Key", "holder"),
+                    new ComboBoxPairs("Sender Vouches", "sender")
+                };
+            ComboBoxConfirmation.ItemsSource = confirmations;
+            ComboBoxConfirmation.DisplayMemberPath = "Key";
+            ComboBoxConfirmation.SelectedValuePath = "Value";
+            ComboBoxConfirmation.SelectedItem = confirmations.First();
+        }
+
+        private void PopulateAlgorithms()
+        {
+            var algorithms = new List<ComboBoxPairs>
+                {
+                    new ComboBoxPairs("SHA-256", "SHA256"),
+                    new ComboBoxPairs("SHA-1", "SHA1")
+                };
+            ComboBoxSigningAlgorithm.ItemsSource = algorithms;
+            ComboBoxSigningAlgorithm.DisplayMemberPath = "Key";
+            ComboBoxSigningAlgorithm.SelectedValuePath = "Value";
+            ComboBoxSigningAlgorithm.SelectedItem = algorithms.First();
+
+            ComboBoxDigestAlgorithm.ItemsSource = algorithms;
+            ComboBoxDigestAlgorithm.DisplayMemberPath = "Key";
+            ComboBoxDigestAlgorithm.SelectedValuePath = "Value";
+            ComboBoxDigestAlgorithm.SelectedItem = algorithms.First();
         }
 
         private void PopulatePurposeOfUse()
@@ -136,6 +180,10 @@ namespace CommonWell.Tools
             }
         }
 
+        private void DecodeSAML_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
         private static bool IsCertificateLoaded()
         {
             bool returnValue = true;
@@ -171,8 +219,8 @@ namespace CommonWell.Tools
         private string BuildJwtToken()
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var certificate =
-                new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
+            var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
+            var issuerName = certificate.FriendlyName;
             var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(new[]
@@ -184,7 +232,7 @@ namespace CommonWell.Tools
                             new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString()),
                             new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
                         }),
-                    TokenIssuerName = "self",
+                    TokenIssuerName = string.Format("https://idp.{0}.org/JWT", (issuerName ?? "sample")),
                     TokenType = "JWT",
                     AppliesToAddress = XspaClaimTypes.AppliesToAddress,
                     Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
@@ -214,7 +262,7 @@ namespace CommonWell.Tools
 
         private static string DecodeFromBase64(string encodedData)
         {
-            int padding = encodedData.Length % 4;
+            int padding = encodedData.Length%4;
             if (padding > 0)
             {
                 encodedData += new string('=', (4 - padding));
@@ -240,7 +288,52 @@ namespace CommonWell.Tools
 
         private string BuildSamlToken()
         {
-            var tokenHandler = new CustomSaml2SecurityTokenHandler();
+            var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
+            var issuerName = certificate.FriendlyName;
+            var signingAlgorithm = SignatureAlgorithm.Sha256;
+            var digestAlgorithm = DigestAlgorithm.Sha256;
+            SigningCredentials signingCredentials = null;
+
+            switch (ComboBoxSigningAlgorithm.SelectedValue.ToString())
+            {
+                case "SHA1":
+                    signingAlgorithm = SignatureAlgorithm.Sha1;
+                    break;
+                case "SHA256":
+                    signingAlgorithm = SignatureAlgorithm.Sha256;
+                    break;
+            }
+
+            switch (ComboBoxDigestAlgorithm.SelectedValue.ToString())
+            {
+                case "SHA1":
+                    digestAlgorithm = DigestAlgorithm.Sha1;
+                    break;
+                case "SHA256":
+                    digestAlgorithm = DigestAlgorithm.Sha256;
+                    break;
+            }
+
+            if (Rsa.IsChecked.HasValue && Rsa.IsChecked.Value)
+            {
+                var rsa = certificate.PrivateKey as RSACryptoServiceProvider;
+                if (rsa != null)
+                {
+                    var rsaKey = new RsaSecurityKey(rsa);
+                    var rsaClause = new RsaKeyIdentifierClause(rsa);
+                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] {rsaClause});
+                    signingCredentials = new SigningCredentials(rsaKey, signingAlgorithm, digestAlgorithm, ski);
+                }
+            }
+            else
+            {
+                var clause =
+                    new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>();
+                var ski = new SecurityKeyIdentifier(clause);
+                signingCredentials = new X509SigningCredentials(certificate, ski, SignatureAlgorithm.Sha1,
+                                                                DigestAlgorithm.Sha1);
+            }
+
             var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(new[]
@@ -249,23 +342,51 @@ namespace CommonWell.Tools
                             new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
                             new Claim(XspaClaimTypes.SubjectRole,
                                       new RoleClaim(ComboBoxSubjectRole.Text,
-                                                    ComboBoxSubjectRole.SelectedValue.ToString())
-                                          .ToString()),
+                                                    ComboBoxSubjectRole.SelectedValue.ToString()).ToString()),
                             new Claim(XspaClaimTypes.PurposeOfUse,
                                       new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text,
                                                             ComboBoxPurposeOfUse.SelectedValue.ToString()).ToString()),
-                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text)
-                            ,
+                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
                             new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
                         }),
-                    TokenIssuerName = "self",
+                    TokenIssuerName = string.Format("https://idp.{0}.org/SAML2", (issuerName ?? "sample")),
                     TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0",
                     AppliesToAddress = XspaClaimTypes.AppliesToAddress,
-                    Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value)
+                    Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+                    SigningCredentials = signingCredentials
                 };
-            var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
-            tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
+
+            if (CheckBoxEncrypt.IsChecked.HasValue && CheckBoxEncrypt.IsChecked.Value)
+            {
+                string keyWrapAlgorithm = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+                string encryptionAlgorithm = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+                var encryptingCredentials = new EncryptedKeyEncryptingCredentials(certificate, keyWrapAlgorithm, 256,
+                                                                                  encryptionAlgorithm);
+                tokenDescriptor.EncryptingCredentials = encryptingCredentials;
+            }
+
+            switch (ComboBoxConfirmation.SelectedValue.ToString())
+            {
+                case "holder":
+                    tokenDescriptor.Proof = CreateProofDescriptor(certificate);
+                    break;
+                case "sender":
+                    //TODO: need to find way to update SubjectConfirmation Method
+                    break;
+            }
+
+            var tokenHandler = new CustomSaml2SecurityTokenHandler();
+            tokenDescriptor.AddAuthenticationClaims("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
             var token = tokenHandler.CreateToken(tokenDescriptor) as Saml2SecurityToken;
+
+            // This fails because token does not include IssuerKey 
+            //if (token != null)
+            //    foreach (var claimsIdentity in tokenHandler.ValidateToken(token))
+            //    {
+            //        Console.WriteLine(claimsIdentity.Name);
+            //    }
+
+
             var settings = new XmlWriterSettings {Indent = true};
             var sbuilder = new StringBuilder();
             using (var writer = XmlWriter.Create(sbuilder, settings))
@@ -273,6 +394,13 @@ namespace CommonWell.Tools
                 if (token != null) tokenHandler.WriteToken(writer, token);
             }
             return sbuilder.ToString();
+        }
+
+        private static SymmetricProofDescriptor CreateProofDescriptor(X509Certificate2 encryptingCertificate)
+        {
+            return new SymmetricProofDescriptor(
+                256,
+                new X509EncryptingCredentials(encryptingCertificate));
         }
 
         private void TxtPassphrase_TextChanged(object sender, TextChangedEventArgs e)
@@ -291,6 +419,16 @@ namespace CommonWell.Tools
             SetControlsFromSettings();
         }
 
+        private void CheckBoxEncrypt_Checked(object sender, RoutedEventArgs e)
+        {
+            CheckBoxEncrypt.Content = "Encryption ON";
+        }
+
+        private void CheckBoxEncrypt_Unchecked(object sender, RoutedEventArgs e)
+        {
+            CheckBoxEncrypt.Content = "Encryption OFF";
+        }
+
         internal class ComboBoxPairs
         {
             public ComboBoxPairs(string key, string value)
@@ -301,6 +439,19 @@ namespace CommonWell.Tools
 
             public string Key { get; set; }
             public string Value { get; set; }
+        }
+
+        private void Rsa_Checked(object sender, RoutedEventArgs e)
+        {
+            ComboBoxSigningAlgorithm.SelectedValue = "SHA1";
+            ComboBoxSigningAlgorithm.IsHitTestVisible = false;
+            ComboBoxSigningAlgorithm.Focusable = false;
+        }
+
+        private void Rsa_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ComboBoxSigningAlgorithm.IsHitTestVisible = true;
+            ComboBoxSigningAlgorithm.Focusable = true;
         }
     }
 }

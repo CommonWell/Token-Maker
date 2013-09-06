@@ -7,7 +7,8 @@
         <Menu IsMainMenu="True" DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="E_xit" Click="Exit_Click" />
-                <MenuItem Header="C_lear Settings" HorizontalAlignment="Left" Width="159" Click="MenuItem_Click" Margin="0,0,-74,0"/>
+                <MenuItem Header="C_lear Settings" HorizontalAlignment="Left" Width="159" Click="MenuItem_Click"
+                          Margin="0,0,-74,0" />
             </MenuItem>
             <MenuItem Header="_Certificate">
                 <MenuItem Header="C_hoose X.509 Certificate" Click="ChooseCertificate_Click" />
@@ -47,12 +48,14 @@
 
                 <TextBox Grid.Row="0" Grid.Column="1" x:Name="TextBoxOrganization" Text="St. Barnabas Hospital"
                          TabIndex="0" />
-                <TextBox Grid.Row="0" Grid.Column="3" x:Name="TextBoxOrganizationId" Text="http://stbarnabashospital.org"
+                <TextBox Grid.Row="0" Grid.Column="3" x:Name="TextBoxOrganizationId"
+                         Text="http://stbarnabashospital.org"
                          TabIndex="1" />
                 <TextBox Grid.Row="1" Grid.Column="1" x:Name="TextBoxSubject" Text="Geoffrey Geiger" TabIndex="2" />
                 <ComboBox Grid.Row="1" Grid.Column="3" Name="ComboBoxSubjectRole" Text="Subject Role" IsEditable="true"
                           IsReadOnly="true" TabIndex="3" />
-                <ComboBox Grid.Row="2" Grid.Column="1" Name="ComboBoxPurposeOfUse" Text="Purpose of Use" IsEditable="true"
+                <ComboBox Grid.Row="2" Grid.Column="1" Name="ComboBoxPurposeOfUse" Text="Purpose of Use"
+                          IsEditable="true"
                           IsReadOnly="true" TabIndex="4" />
                 <TextBox Grid.Row="2" Grid.Column="4" x:Name="TextBoxNpi" Text="1245319598" TabIndex="5" />
                 <xctk:DateTimePicker Grid.Row="3" Grid.Column="1" Name="DateExpiration"
@@ -62,7 +65,7 @@
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Grid >
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
@@ -89,11 +92,12 @@
                 </StatusBarItem>
             </StackPanel>
 
-            <StatusBarItem  Grid.Column="1" HorizontalAlignment="Right">
+            <StatusBarItem Grid.Column="1" HorizontalAlignment="Right">
                 <Label HorizontalAlignment="Right">Passphrase:</Label>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalAlignment="Right">
-                <TextBox x:Name="TextBoxPassphrase" MinWidth="100" LostFocus="TxtPassphrase_LostFocus" TextChanged="TxtPassphrase_TextChanged" />
+                <TextBox x:Name="TextBoxPassphrase" MinWidth="100" LostFocus="TxtPassphrase_LostFocus"
+                         TextChanged="TxtPassphrase_TextChanged" />
             </StatusBarItem>
 
         </StatusBar>
@@ -103,15 +107,15 @@
                     <DockPanel LastChildFill="true">
                         <ToolBar Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="4" DockPanel.Dock="top">
                             <Button Content="Make Token" Click="EncodeJwt_Click" />
-                            <Separator Padding="10"/>
+                            <Separator Padding="10" />
                             <Button Content="Decode Token" Click="DecodeJwt_Click" />
                         </ToolBar>
 
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="51*" />
-                                <ColumnDefinition Width="6*"/>
-                                <ColumnDefinition Width="245*"/>
+                                <ColumnDefinition Width="6*" />
+                                <ColumnDefinition Width="245*" />
                                 <ColumnDefinition Width="302*" />
                             </Grid.ColumnDefinitions>
 
@@ -125,22 +129,26 @@
 
                             <DockPanel Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="3">
                                 <Label Content="Token" DockPanel.Dock="Top" />
-                                <TextBox x:Name="TextBoxJwtToken" FontFamily="Courier New" TextWrapping="Wrap" ContextMenu="{x:Null}"/>
+                                <TextBox x:Name="TextBoxJwtToken" FontFamily="Courier New" TextWrapping="Wrap"
+                                         ContextMenu="{x:Null}" />
                             </DockPanel>
 
                             <DockPanel Grid.Column="3" Grid.Row="2">
                                 <Label Content="Header" DockPanel.Dock="Top" />
-                                <TextBox x:Name="TextBoxJwtHeader" FontFamily="Courier New" TextWrapping="Wrap" ContextMenu="{x:Null}" />
+                                <TextBox x:Name="TextBoxJwtHeader" FontFamily="Courier New" TextWrapping="Wrap"
+                                         ContextMenu="{x:Null}" />
                             </DockPanel>
 
                             <DockPanel Grid.Column="3" Grid.Row="3">
                                 <Label Content="Body" DockPanel.Dock="Top" />
-                                <TextBox x:Name="TextBoxJwtBody" FontFamily="Courier New" TextWrapping="Wrap" ContextMenu="{x:Null}"/>
+                                <TextBox x:Name="TextBoxJwtBody" FontFamily="Courier New" TextWrapping="Wrap"
+                                         ContextMenu="{x:Null}" />
                             </DockPanel>
 
                             <DockPanel Grid.Column="3" Grid.Row="4">
                                 <Label Content="Signature" DockPanel.Dock="Top" />
-                                <TextBox x:Name="TextBoxJwtSignature" FontFamily="Courier New" TextWrapping="Wrap" ContextMenu="{x:Null}" />
+                                <TextBox x:Name="TextBoxJwtSignature" FontFamily="Courier New" TextWrapping="Wrap"
+                                         ContextMenu="{x:Null}" />
                             </DockPanel>
                         </Grid>
                     </DockPanel>
@@ -160,14 +168,45 @@
                         </Grid.RowDefinitions>
 
                         <ToolBar Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
-                            <Button Content="Make Token" Click="SAML_Click" />
+                            <StackPanel HorizontalAlignment="Left">
+                                <Button Content="Make Token" Click="SAML_Click" />
+                                <Separator Padding="10" />
+                                <Button Content="Decode Token" Click="DecodeSAML_Click" />
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <StackPanel>
+                                <Label>Confirmation</Label>
+                                <ComboBox Name="ComboBoxConfirmation" />
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <StackPanel>
+                                <Label>Signing Algorithm:</Label>
+                                <ComboBox Name="ComboBoxSigningAlgorithm" />
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <StackPanel>
+                                <Label>Digest Algorithm:</Label>
+                                <ComboBox Name="ComboBoxDigestAlgorithm" />
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <StackPanel>
+                                <Label>Key Info</Label>
+                                <RadioButton GroupName="KeyInfoOption" Name="X509" Content="X.509" IsChecked="True" />
+                                <RadioButton GroupName="KeyInfoOption" Name="Rsa"  Content="RSA" Checked="Rsa_Checked" Unchecked="Rsa_Unchecked" />
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <CheckBox Name="CheckBoxEncrypt" Checked="CheckBoxEncrypt_Checked" Unchecked="CheckBoxEncrypt_Unchecked">Encryption Off
+                            </CheckBox>
+
                         </ToolBar>
 
                         <DockPanel Grid.Column="0" Grid.Row="1" LastChildFill="True">
                             <Label Content="Token" DockPanel.Dock="Top" />
                         </DockPanel>
                     </Grid>
-                    <TextBox x:Name="TextBoxSamlToken" MaxLength="12500000" FontFamily="Courier New" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ContextMenu="{x:Null}"/>
+                    <TextBox x:Name="TextBoxSamlToken" MaxLength="12500000" FontFamily="Courier New"
+                             HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                             ContextMenu="{x:Null}" />
                 </DockPanel>
             </TabItem>
         </TabControl>
