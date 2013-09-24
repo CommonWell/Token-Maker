@@ -23,7 +23,7 @@
         /// <summary>
         /// PurposeOfUse.
         /// </summary>
-        public const string PurposeOfUse = "urn:oasis:names:tc:xspa:1.0:subject:purposeofuse";
+        public const string PurposeOfUse = "urn:oasis:names:tc:xspa:1,0:subject:purposeofuse";
 
         /// <summary>
         /// OrganizationIdentifier.
