@@ -225,16 +225,18 @@ namespace CommonWell.Tools
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
-                            new Claim(XspaClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
-                            new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
-                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
-                            new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString()),
-                            new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
+                            new Claim(IUAClaimTypes.Subject, TextBoxSubject.Text),
+                            new Claim(IUAClaimTypes.JWT_ID, System.Guid.NewGuid().ToString()), 
+                            new Claim(IUAClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                            new Claim(IUAClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
+                            new Claim(IUAClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                            new Claim(IUAClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                            new Claim(IUAClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString()),
+                            new Claim(IUAClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
                         }),
                     TokenIssuerName = string.Format("https://idp.{0}.org/JWT", (issuerName ?? "sample")),
                     TokenType = "JWT",
-                    AppliesToAddress = XspaClaimTypes.AppliesToAddress,
+                    AppliesToAddress = IUAClaimTypes.AppliesToAddress,
                     Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
                     SigningCredentials = new X509SigningCredentials(certificate)
                 };
@@ -244,7 +246,7 @@ namespace CommonWell.Tools
 
         private void ChooseCertificate_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog {DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12"};
+            var dlg = new OpenFileDialog { DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12" };
             bool? result = dlg.ShowDialog();
 
             if (result == true)
@@ -262,7 +264,7 @@ namespace CommonWell.Tools
 
         private static string DecodeFromBase64(string encodedData)
         {
-            int padding = encodedData.Length%4;
+            int padding = encodedData.Length % 4;
             if (padding > 0)
             {
                 encodedData += new string('=', (4 - padding));
@@ -321,7 +323,7 @@ namespace CommonWell.Tools
                 {
                     var rsaKey = new RsaSecurityKey(rsa);
                     var rsaClause = new RsaKeyIdentifierClause(rsa);
-                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] {rsaClause});
+                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] { rsaClause });
                     signingCredentials = new SigningCredentials(rsaKey, signingAlgorithm, digestAlgorithm, ski);
                 }
             }
@@ -387,7 +389,7 @@ namespace CommonWell.Tools
             //    }
 
 
-            var settings = new XmlWriterSettings {Indent = true};
+            var settings = new XmlWriterSettings { Indent = true };
             var sbuilder = new StringBuilder();
             using (var writer = XmlWriter.Create(sbuilder, settings))
             {
