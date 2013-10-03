@@ -23,7 +23,8 @@
         /// <summary>
         /// PurposeOfUse.
         /// </summary>
-        public const string PurposeOfUse = "urn:oasis:names:tc:xspa:1.0:subject:purposeofuse";
+        //TODO: update name to replace 1,0 with 1.0 once CommonWell has released bug fix to thheir service; in the meantime, this is necessary to ensure tokens are accepted
+        public const string PurposeOfUse = "urn:oasis:names:tc:xspa:1,0:subject:purposeofuse";
 
         /// <summary>
         /// OrganizationIdentifier.
@@ -42,7 +43,7 @@
     }
 
     /// <summary>
-    /// Claims used in the xspa specification.
+    /// Claims used in the IHE IUA specification.
     /// </summary>
     public static class IUAClaimTypes
     {

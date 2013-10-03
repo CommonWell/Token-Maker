@@ -225,21 +225,22 @@ namespace CommonWell.Tools
                 {
                     Subject = new ClaimsIdentity(new[]
                         {
-                            new Claim(IUAClaimTypes.Subject, TextBoxSubject.Text),
-                            new Claim(IUAClaimTypes.JWT_ID, System.Guid.NewGuid().ToString()), 
-                            new Claim(IUAClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
-                            new Claim(IUAClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
-                            new Claim(IUAClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
-                            new Claim(IUAClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
-                            new Claim(IUAClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString()),
-                            new Claim(IUAClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
+                            new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                            new Claim(XspaClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
+                            new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                            new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
                         }),
-                    TokenIssuerName = string.Format("https://idp.{0}.org/JWT", (issuerName ?? "sample")),
+                    TokenIssuerName = "self",
                     TokenType = "JWT",
                     AppliesToAddress = IUAClaimTypes.AppliesToAddress,
                     Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
                     SigningCredentials = new X509SigningCredentials(certificate)
                 };
+            if (!String.IsNullOrEmpty(TextBoxNpi.Text))
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
+            }
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
