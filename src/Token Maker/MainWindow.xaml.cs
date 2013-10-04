@@ -1,19 +1,24 @@
-﻿// ====================================================================
-// Solution: Token Maker
-// Project: Token Maker
-// File: MainWindow.xaml.cs
+﻿// ============================================================================
+//  Copyright 2013 Peter Bernhardt, Trevel Beshore, et. al.
+//   
+//  Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
+//  this file except in compliance with the License. You may obtain a copy of the 
+//  License at 
 //  
-// Created: 07-31-2013
+//      http://www.apache.org/licenses/LICENSE-2.0 
 //  
-// (c) 2013 RelayHealth and its affiliates. All rights reserved.
-// ====================================================================
+//  Unless required by applicable law or agreed to in writing, software distributed 
+//  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+//  CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+//  specific language governing permissions and limitations under the License.
+// ============================================================================
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -55,12 +60,12 @@ namespace CommonWell.Tools
         {
             // Common roles with associated SNOMED codes
             var subjectRoles = new List<ComboBoxPairs>
-                {
-                    new ComboBoxPairs("Medical doctor", "112247003"),
-                    new ComboBoxPairs("Hospital nurse", "394618009"),
-                    new ComboBoxPairs("Pharmacist", "46255001"),
-                    new ComboBoxPairs("Admnistrator", "308050009")
-                };
+            {
+                new ComboBoxPairs("Medical doctor", "112247003"),
+                new ComboBoxPairs("Hospital nurse", "394618009"),
+                new ComboBoxPairs("Pharmacist", "46255001"),
+                new ComboBoxPairs("Admnistrator", "308050009")
+            };
             ComboBoxSubjectRole.ItemsSource = subjectRoles;
             ComboBoxSubjectRole.DisplayMemberPath = "Key";
             ComboBoxSubjectRole.SelectedValuePath = "Value";
@@ -70,11 +75,11 @@ namespace CommonWell.Tools
         private void PopulateSAMLConfirmations()
         {
             var confirmations = new List<ComboBoxPairs>
-                {
-                    new ComboBoxPairs("Bearer", "bearer"),
-                    new ComboBoxPairs("Holder-of-Key", "holder"),
-                    new ComboBoxPairs("Sender Vouches", "sender")
-                };
+            {
+                new ComboBoxPairs("Bearer", "bearer"),
+                new ComboBoxPairs("Holder-of-Key", "holder"),
+                new ComboBoxPairs("Sender Vouches", "sender")
+            };
             ComboBoxConfirmation.ItemsSource = confirmations;
             ComboBoxConfirmation.DisplayMemberPath = "Key";
             ComboBoxConfirmation.SelectedValuePath = "Value";
@@ -84,10 +89,10 @@ namespace CommonWell.Tools
         private void PopulateAlgorithms()
         {
             var algorithms = new List<ComboBoxPairs>
-                {
-                    new ComboBoxPairs("SHA-256", "SHA256"),
-                    new ComboBoxPairs("SHA-1", "SHA1")
-                };
+            {
+                new ComboBoxPairs("SHA-256", "SHA256"),
+                new ComboBoxPairs("SHA-1", "SHA1")
+            };
             ComboBoxSigningAlgorithm.ItemsSource = algorithms;
             ComboBoxSigningAlgorithm.DisplayMemberPath = "Key";
             ComboBoxSigningAlgorithm.SelectedValuePath = "Value";
@@ -102,35 +107,35 @@ namespace CommonWell.Tools
         private void PopulatePurposeOfUse()
         {
             var purposes = new List<ComboBoxPairs>
-                {
-                    new ComboBoxPairs("Treatment", "TREATMENT"),
-                    new ComboBoxPairs("Payment", "PAYMENT"),
-                    new ComboBoxPairs("Healthcare Operations", "OPERATIONS"),
-                    new ComboBoxPairs("Systems Administration", "SYSADMIN"),
-                    new ComboBoxPairs("Fraud detection", "FRAUD"),
-                    new ComboBoxPairs("Disclosure of Psychotherapy Notes", "PSYCHOTHERAPY"),
-                    new ComboBoxPairs("Training", "TRAINING"),
-                    new ComboBoxPairs("Legal", "LEGAL"),
-                    new ComboBoxPairs("Marketing", "MARKETING"),
-                    new ComboBoxPairs("Facility directories", "DIRECTORY"),
-                    new ComboBoxPairs("Disclosure to family member", "FAMILY"),
-                    new ComboBoxPairs("Disclosure with individual Present", "PRESENT"),
-                    new ComboBoxPairs("Emergency disclosure", "EMERGENCY"),
-                    new ComboBoxPairs("Disaster relief", "DISASTER"),
-                    new ComboBoxPairs("Public health activities", "PUBLICHEALTH"),
-                    new ComboBoxPairs("Disclosure about victim of abuse", "ABUSE"),
-                    new ComboBoxPairs("Oversight activities", "OVERSIGHT"),
-                    new ComboBoxPairs("Judicial proceedings", "JUDICIAL"),
-                    new ComboBoxPairs("Law enforcement", "LAW"),
-                    new ComboBoxPairs("Disclosure about decedent", "DECEASED"),
-                    new ComboBoxPairs("Organ donation", "DONATION"),
-                    new ComboBoxPairs("Dsclosure for research", "RESEARCH"),
-                    new ComboBoxPairs("Disclosure to avert threat", "THREAT"),
-                    new ComboBoxPairs("Specialized government function", "GOVERNMENT"),
-                    new ComboBoxPairs("Worker's compensation", "WORKERSCOMP"),
-                    new ComboBoxPairs("Insurance/Disability coverage", "COVERAGE"),
-                    new ComboBoxPairs("Request of the individual", "REQUEST")
-                };
+            {
+                new ComboBoxPairs("Treatment", "TREATMENT"),
+                new ComboBoxPairs("Payment", "PAYMENT"),
+                new ComboBoxPairs("Healthcare Operations", "OPERATIONS"),
+                new ComboBoxPairs("Systems Administration", "SYSADMIN"),
+                new ComboBoxPairs("Fraud detection", "FRAUD"),
+                new ComboBoxPairs("Disclosure of Psychotherapy Notes", "PSYCHOTHERAPY"),
+                new ComboBoxPairs("Training", "TRAINING"),
+                new ComboBoxPairs("Legal", "LEGAL"),
+                new ComboBoxPairs("Marketing", "MARKETING"),
+                new ComboBoxPairs("Facility directories", "DIRECTORY"),
+                new ComboBoxPairs("Disclosure to family member", "FAMILY"),
+                new ComboBoxPairs("Disclosure with individual Present", "PRESENT"),
+                new ComboBoxPairs("Emergency disclosure", "EMERGENCY"),
+                new ComboBoxPairs("Disaster relief", "DISASTER"),
+                new ComboBoxPairs("Public health activities", "PUBLICHEALTH"),
+                new ComboBoxPairs("Disclosure about victim of abuse", "ABUSE"),
+                new ComboBoxPairs("Oversight activities", "OVERSIGHT"),
+                new ComboBoxPairs("Judicial proceedings", "JUDICIAL"),
+                new ComboBoxPairs("Law enforcement", "LAW"),
+                new ComboBoxPairs("Disclosure about decedent", "DECEASED"),
+                new ComboBoxPairs("Organ donation", "DONATION"),
+                new ComboBoxPairs("Dsclosure for research", "RESEARCH"),
+                new ComboBoxPairs("Disclosure to avert threat", "THREAT"),
+                new ComboBoxPairs("Specialized government function", "GOVERNMENT"),
+                new ComboBoxPairs("Worker's compensation", "WORKERSCOMP"),
+                new ComboBoxPairs("Insurance/Disability coverage", "COVERAGE"),
+                new ComboBoxPairs("Request of the individual", "REQUEST")
+            };
             ComboBoxPurposeOfUse.ItemsSource = purposes;
             ComboBoxPurposeOfUse.DisplayMemberPath = "Key";
             ComboBoxPurposeOfUse.SelectedValuePath = "Value";
@@ -180,17 +185,13 @@ namespace CommonWell.Tools
             }
         }
 
-        private void DecodeSAML_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private static bool IsCertificateLoaded()
         {
             bool returnValue = true;
             if (Path.IsPathRooted(Settings.Default.CertificatePath) == false)
             {
                 MessageBox.Show("Select an X.509 Certificate", "X.509 Certificate Required", MessageBoxButton.OK,
-                                MessageBoxImage.Exclamation);
+                    MessageBoxImage.Exclamation);
                 returnValue = false;
             }
             return returnValue;
@@ -201,6 +202,7 @@ namespace CommonWell.Tools
             TextBoxJwtSignature.Clear();
             TextBoxJwtHeader.Clear();
             TextBoxJwtBody.Clear();
+            if (String.IsNullOrEmpty(TextBoxJwtToken.Text)) return;
             ParseToken(TextBoxJwtToken.Text);
         }
 
@@ -220,34 +222,66 @@ namespace CommonWell.Tools
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
-            var issuerName = certificate.FriendlyName;
-            var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new[]
-                        {
-                            new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
-                            new Claim(XspaClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
-                            new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
-                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
-                            new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
-                        }),
-                    TokenIssuerName = "self",
-                    TokenType = "JWT",
-                    AppliesToAddress = IUAClaimTypes.AppliesToAddress,
-                    Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
-                    SigningCredentials = new X509SigningCredentials(certificate)
-                };
-            if (!String.IsNullOrEmpty(TextBoxNpi.Text))
-            {
-                tokenDescriptor.Subject.AddClaim(new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
-            }
+            SecurityTokenDescriptor tokenDescriptor = (Iua.IsChecked.HasValue && Iua.IsChecked.Value)
+                ? BuildDescriptorUsingIUAProfile()
+                : BuildDescriptorUsingXspaProfile();
+            tokenDescriptor.TokenType = "JWT";
+            tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
+        private SecurityTokenDescriptor BuildDescriptorUsingIUAProfile()
+        {
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(IUAClaimTypes.JWTId, Guid.NewGuid().ToString()),
+                    new Claim(IUAClaimTypes.Subject, TextBoxSubject.Text),
+                    new Claim(IUAClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                    new Claim(IUAClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
+                    new Claim(IUAClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                    new Claim(IUAClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                    new Claim(IUAClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
+                }),
+                TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
+                AppliesToAddress = IUAClaimTypes.AppliesToAddress,
+                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+            };
+            if (!String.IsNullOrEmpty(TextBoxNpi.Text))
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(IUAClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
+            }
+            return tokenDescriptor;
+        }
+
+        private SecurityTokenDescriptor BuildDescriptorUsingXspaProfile()
+        {
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                    new Claim(XspaClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
+                    new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                    new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                    new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
+                }),
+                TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
+                AppliesToAddress = IUAClaimTypes.AppliesToAddress,
+                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+            };
+            if (!String.IsNullOrEmpty(TextBoxNpi.Text))
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
+            }
+            return tokenDescriptor;
+        }
+
         private void ChooseCertificate_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog { DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12" };
+            var dlg = new OpenFileDialog {DefaultExt = ".pfx", Filter = "Certificates (.pfx, .p12)|*.pfx; *.p12"};
             bool? result = dlg.ShowDialog();
 
             if (result == true)
@@ -265,7 +299,7 @@ namespace CommonWell.Tools
 
         private static string DecodeFromBase64(string encodedData)
         {
-            int padding = encodedData.Length % 4;
+            int padding = encodedData.Length%4;
             if (padding > 0)
             {
                 encodedData += new string('=', (4 - padding));
@@ -292,9 +326,8 @@ namespace CommonWell.Tools
         private string BuildSamlToken()
         {
             var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
-            var issuerName = certificate.FriendlyName;
-            var signingAlgorithm = SignatureAlgorithm.Sha256;
-            var digestAlgorithm = DigestAlgorithm.Sha256;
+            string signingAlgorithm = SignatureAlgorithm.Sha256;
+            string digestAlgorithm = DigestAlgorithm.Sha256;
             SigningCredentials signingCredentials = null;
 
             switch (ComboBoxSigningAlgorithm.SelectedValue.ToString())
@@ -324,7 +357,7 @@ namespace CommonWell.Tools
                 {
                     var rsaKey = new RsaSecurityKey(rsa);
                     var rsaClause = new RsaKeyIdentifierClause(rsa);
-                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] { rsaClause });
+                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] {rsaClause});
                     signingCredentials = new SigningCredentials(rsaKey, signingAlgorithm, digestAlgorithm, ski);
                 }
             }
@@ -333,38 +366,19 @@ namespace CommonWell.Tools
                 var clause =
                     new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>();
                 var ski = new SecurityKeyIdentifier(clause);
-                signingCredentials = new X509SigningCredentials(certificate, ski, SignatureAlgorithm.Sha1,
-                                                                DigestAlgorithm.Sha1);
+                signingCredentials = new X509SigningCredentials(certificate, ski, signingAlgorithm, digestAlgorithm);
             }
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new[]
-                        {
-                            new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
-                            new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
-                            new Claim(XspaClaimTypes.SubjectRole,
-                                      new RoleClaim(ComboBoxSubjectRole.Text,
-                                                    ComboBoxSubjectRole.SelectedValue.ToString()).ToString()),
-                            new Claim(XspaClaimTypes.PurposeOfUse,
-                                      new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text,
-                                                            ComboBoxPurposeOfUse.SelectedValue.ToString()).ToString()),
-                            new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
-                            new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text)
-                        }),
-                    TokenIssuerName = string.Format("https://idp.{0}.org/SAML2", (issuerName ?? "sample")),
-                    TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0",
-                    AppliesToAddress = XspaClaimTypes.AppliesToAddress,
-                    Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
-                    SigningCredentials = signingCredentials
-                };
+            SecurityTokenDescriptor tokenDescriptor = BuildDescriptorUsingXspaProfile();
+            tokenDescriptor.TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
+            tokenDescriptor.SigningCredentials = signingCredentials;
 
             if (CheckBoxEncrypt.IsChecked.HasValue && CheckBoxEncrypt.IsChecked.Value)
             {
-                string keyWrapAlgorithm = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
-                string encryptionAlgorithm = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+                const string keyWrapAlgorithm = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+                const string encryptionAlgorithm = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
                 var encryptingCredentials = new EncryptedKeyEncryptingCredentials(certificate, keyWrapAlgorithm, 256,
-                                                                                  encryptionAlgorithm);
+                    encryptionAlgorithm);
                 tokenDescriptor.EncryptingCredentials = encryptingCredentials;
             }
 
@@ -390,9 +404,9 @@ namespace CommonWell.Tools
             //    }
 
 
-            var settings = new XmlWriterSettings { Indent = true };
+            var settings = new XmlWriterSettings {Indent = true};
             var sbuilder = new StringBuilder();
-            using (var writer = XmlWriter.Create(sbuilder, settings))
+            using (XmlWriter writer = XmlWriter.Create(sbuilder, settings))
             {
                 if (token != null) tokenHandler.WriteToken(writer, token);
             }
@@ -432,18 +446,6 @@ namespace CommonWell.Tools
             CheckBoxEncrypt.Content = "Encryption OFF";
         }
 
-        internal class ComboBoxPairs
-        {
-            public ComboBoxPairs(string key, string value)
-            {
-                Key = key;
-                Value = value;
-            }
-
-            public string Key { get; set; }
-            public string Value { get; set; }
-        }
-
         private void Rsa_Checked(object sender, RoutedEventArgs e)
         {
             ComboBoxSigningAlgorithm.SelectedValue = "SHA1";
@@ -455,6 +457,18 @@ namespace CommonWell.Tools
         {
             ComboBoxSigningAlgorithm.IsHitTestVisible = true;
             ComboBoxSigningAlgorithm.Focusable = true;
+        }
+
+        internal class ComboBoxPairs
+        {
+            public ComboBoxPairs(string key, string value)
+            {
+                Key = key;
+                Value = value;
+            }
+
+            public string Key { get; set; }
+            public string Value { get; set; }
         }
     }
 }
