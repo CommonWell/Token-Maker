@@ -224,7 +224,7 @@ namespace CommonWell.Tools
             var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
             SecurityTokenDescriptor tokenDescriptor = (Iua.IsChecked.HasValue && Iua.IsChecked.Value)
                 ? BuildDescriptorUsingIUAProfile()
-                : BuildDescriptorUsingXspaProfile();
+                : BuildJWTDescriptorUsingXspaProfile();
             tokenDescriptor.TokenType = "JWT";
             tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -256,7 +256,30 @@ namespace CommonWell.Tools
             return tokenDescriptor;
         }
 
-        private SecurityTokenDescriptor BuildDescriptorUsingXspaProfile()
+        private SecurityTokenDescriptor BuildSAMLDescriptorUsingXspaProfile()
+        {
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                    new Claim(XspaClaimTypes.SubjectRole, new RoleClaim(ComboBoxSubjectRole.Text, ComboBoxSubjectRole.SelectedValue.ToString()).ToString()),
+                    new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                    new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                    new Claim(XspaClaimTypes.PurposeOfUse, new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text, ComboBoxPurposeOfUse.SelectedValue.ToString()).ToString())
+                }),
+                TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
+                AppliesToAddress = IUAClaimTypes.AppliesToAddress,
+                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+            };
+            if (!String.IsNullOrEmpty(TextBoxNpi.Text))
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
+            }
+            return tokenDescriptor;
+        }
+
+        private SecurityTokenDescriptor BuildJWTDescriptorUsingXspaProfile()
         {
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -369,7 +392,7 @@ namespace CommonWell.Tools
                 signingCredentials = new X509SigningCredentials(certificate, ski, signingAlgorithm, digestAlgorithm);
             }
 
-            SecurityTokenDescriptor tokenDescriptor = BuildDescriptorUsingXspaProfile();
+            SecurityTokenDescriptor tokenDescriptor = BuildSAMLDescriptorUsingXspaProfile();
             tokenDescriptor.TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
             tokenDescriptor.SigningCredentials = signingCredentials;
 
