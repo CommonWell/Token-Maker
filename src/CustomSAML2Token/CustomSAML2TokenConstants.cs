@@ -1,5 +1,5 @@
 ﻿// ============================================================================
-//  Copyright 2013 Peter Bernhardt, Trevel Beshore, et. al.
+//  Copyright 2013 CommonWell Health Alliance
 //   
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 //  this file except in compliance with the License. You may obtain a copy of the 
@@ -15,7 +15,7 @@
 
 namespace CommonWell.Tools
 {
-    public static class CustomSAML2TokenConstants
+    public static class CustomSaml2TokenConstants
     {
         public const string Audience = "Audience";
         public const string ExpiresOn = "ExpiresOn";

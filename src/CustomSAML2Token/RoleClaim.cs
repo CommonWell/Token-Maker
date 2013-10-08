@@ -1,5 +1,5 @@
 ﻿// ============================================================================
-//  Copyright 2013 Peter Bernhardt, Trevel Beshore, et. al.
+//  Copyright 2013 CommonWell Health Alliance
 //   
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 //  this file except in compliance with the License. You may obtain a copy of the 
@@ -13,26 +13,50 @@
 //  specific language governing permissions and limitations under the License.
 // ============================================================================
 
-using System;
+using System.Text;
+using System.Xml;
 
 namespace CommonWell.Tools
 {
-    public class RoleClaim
+    public class RoleClaim : NestedClaim
     {
-        public string Code;
-        public string DisplayName;
+        public RoleClaim()
+            : base()
+        {
+        }
 
         public RoleClaim(string name, string code)
+            : base(name, code)
         {
-            Code = code;
-            DisplayName = name;
+            CodeSystem = "2.16.840.1.113883.6.96";
+            CodeSystemName = "SNOMED_CT";
         }
 
         public override string ToString()
         {
-            const string template =
-                @"<Role xmlns=""urn:hl7-org:v3"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xsi:type=""CE"" code=""{0}"" codeSystem=""2.16.840.1.113883.6.96"" codeSystemName=""SNOMED_CT"" displayName=""{1}""/>";
-            return String.Format(template, Code, DisplayName);
+            var settings = new XmlWriterSettings
+            {
+                Indent = false,
+                Encoding = new UTF8Encoding(false),
+                NamespaceHandling = NamespaceHandling.OmitDuplicates,
+                OmitXmlDeclaration = true,
+                NewLineOnAttributes = false,
+                DoNotEscapeUriAttributes = true
+            };
+            var sb = new StringBuilder();
+            using (var xw = XmlWriter.Create(sb, settings))
+            {
+                xw.WriteStartElement("Role", Xmlnamespace);
+                xw.WriteAttributeString("xmlns", "xsi", null, Xsinamespace);
+                xw.WriteAttributeString("xsi", "type", Xsinamespace, Type);
+                xw.WriteAttributeString("code", Code);
+                xw.WriteAttributeString("codeSystem", CodeSystem);
+                xw.WriteAttributeString("codeSystemName", CodeSystemName);
+                xw.WriteAttributeString("displayName", DisplayName);
+                xw.WriteEndElement();
+                xw.Flush();
+                return sb.ToString();
+            }
         }
     }
 }

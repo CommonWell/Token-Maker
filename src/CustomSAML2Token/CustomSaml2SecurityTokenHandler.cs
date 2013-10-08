@@ -1,5 +1,5 @@
 ﻿// ============================================================================
-//  Copyright 2013 Peter Bernhardt, Trevel Beshore, et. al.
+//  Copyright 2013 CommonWell Health Alliance
 //   
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 //  this file except in compliance with the License. You may obtain a copy of the 
@@ -28,16 +28,13 @@ namespace CommonWell.Tools
     {
         public CustomSaml2SecurityTokenHandler()
         {
-            var registry = new ConfigurationBasedIssuerNameRegistry();
-            registry.AddTrustedIssuer("fb369e5dcf3ae82dcbe95a922baff3112fcde352", "McKesson");
-            registry.AddTrustedIssuer("17bfb6a73bc53bbfdc64e4e64f77b206471e9c08", "Cerner");
+            var registry = new TrustedIssuerNameRegistry();
             var handlerConfig = new SecurityTokenHandlerConfiguration
             {
-                AudienceRestriction = new AudienceRestriction(AudienceUriMode.BearerKeyOnly),
+                AudienceRestriction = new AudienceRestriction(AudienceUriMode.Never),
                 MaxClockSkew = new TimeSpan(50000000),
                 IssuerNameRegistry = registry,
-                CertificateValidator = X509CertificateValidator.None,
-                IssuerTokenResolver = new CustomIssuerTokenResolver()
+                CertificateValidator = X509CertificateValidator.None
             };
             Configuration = handlerConfig;
         }
@@ -66,6 +63,16 @@ namespace CommonWell.Tools
             }
             return "empty";
         }
+
+        protected override Saml2Attribute ReadAttribute(XmlReader reader)
+        {
+            if (reader != null)
+            {
+                return base.ReadAttribute(reader);
+            }
+            return null;
+        }
+
 
         protected override void WriteAttributeValue(XmlWriter writer, string value, Saml2Attribute attribute)
         {
