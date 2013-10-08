@@ -1,5 +1,5 @@
 ﻿// ============================================================================
-//  Copyright 2013 Peter Bernhardt, Trevel Beshore, et. al.
+//  Copyright 2013 CommonWell Health Alliance
 //   
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 //  this file except in compliance with the License. You may obtain a copy of the 
@@ -17,16 +17,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IdentityModel.Protocols.WSTrust;
+using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel.Security;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml;
+using System.Xml.Linq;
 using CommonWell.Tools.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
@@ -231,6 +234,7 @@ namespace CommonWell.Tools
             return tokenHandler.WriteToken(token);
         }
 
+
         private SecurityTokenDescriptor BuildDescriptorUsingIUAProfile()
         {
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -263,10 +267,13 @@ namespace CommonWell.Tools
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(XspaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
-                    new Claim(XspaClaimTypes.SubjectRole, new RoleClaim(ComboBoxSubjectRole.Text, ComboBoxSubjectRole.SelectedValue.ToString()).ToString()),
+                    new Claim(XspaClaimTypes.SubjectRole,
+                        new RoleClaim(ComboBoxSubjectRole.Text, ComboBoxSubjectRole.SelectedValue.ToString()).ToString()),
                     new Claim(XspaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
                     new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
-                    new Claim(XspaClaimTypes.PurposeOfUse, new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text, ComboBoxPurposeOfUse.SelectedValue.ToString()).ToString())
+                    new Claim(XspaClaimTypes.PurposeOfUse,
+                        new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text, ComboBoxPurposeOfUse.SelectedValue.ToString())
+                            .ToString())
                 }),
                 TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
@@ -419,21 +426,14 @@ namespace CommonWell.Tools
             tokenDescriptor.AddAuthenticationClaims("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
             var token = tokenHandler.CreateToken(tokenDescriptor) as Saml2SecurityToken;
 
-            // This fails because token does not include IssuerKey 
-            //if (token != null)
-            //    foreach (var claimsIdentity in tokenHandler.ValidateToken(token))
-            //    {
-            //        Console.WriteLine(claimsIdentity.Name);
-            //    }
-
-
-            var settings = new XmlWriterSettings {Indent = true};
+            var settings = new XmlWriterSettings {Indent = false, Encoding = Encoding.Default};
             var sbuilder = new StringBuilder();
             using (XmlWriter writer = XmlWriter.Create(sbuilder, settings))
             {
                 if (token != null) tokenHandler.WriteToken(writer, token);
             }
-            return sbuilder.ToString();
+            var tokenString = sbuilder.ToString();
+            return tokenString;
         }
 
         private static SymmetricProofDescriptor CreateProofDescriptor(X509Certificate2 encryptingCertificate)
@@ -480,6 +480,90 @@ namespace CommonWell.Tools
         {
             ComboBoxSigningAlgorithm.IsHitTestVisible = true;
             ComboBoxSigningAlgorithm.Focusable = true;
+        }
+
+        private void IndentSAML_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(TextBoxSamlToken.Text)) return;
+
+            TextBoxSamlToken.Text = XDocument.Parse(TextBoxSamlToken.Text, LoadOptions.SetLineInfo).ToString();
+        }
+
+        private void SAMLValidate_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(TextBoxSamlToken.Text)) return;
+
+            try
+            {
+                var tokenHandler = new CustomSaml2SecurityTokenHandler();
+                var samlToken2 = tokenHandler.ReadToken(new XmlTextReader(new StringReader(TextBoxSamlToken.Text)));
+                var identity = ValidateSamlToken(samlToken2);
+
+                TreeViewValidatedClaims.Items.Clear();
+                var parent = new TreeViewItem {Header = "Validated Claims"};
+                foreach (var item in identity.Claims)
+                {
+                    if (item.Type == XspaClaimTypes.PurposeOfUse)
+                    {
+                        parent.Items.Add(PopulateNestedItem<PurposeOfUseClaim>(item));
+                        continue;
+                    }
+                    if (item.Type == XspaClaimTypes.SubjectRole)
+                    {
+                        parent.Items.Add(PopulateNestedItem<RoleClaim>(item));
+                        continue;
+                    }
+                    var claimItem = new TreeViewItem {Header = item.Type};
+                    claimItem.Items.Add(AddItemToTree("Value", item.Value));
+                    claimItem.Items.Add(AddItemToTree("Issued by", item.OriginalIssuer));
+                    parent.Items.Add(claimItem);
+                }
+                TreeViewValidatedClaims.Items.Add(parent);
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private TreeViewItem PopulateNestedItem<T>(Claim claim) where T : NestedClaim, new()
+        {
+            var nestedClaim = new T();
+            nestedClaim.Load(claim.Value);
+            var nestedItem = new TreeViewItem() {Header = claim.Type};
+            nestedItem.Items.Add(AddItemToTree("Code", nestedClaim.Code));
+            nestedItem.Items.Add(AddItemToTree("Code System", nestedClaim.CodeSystem));
+            nestedItem.Items.Add(AddItemToTree("Code System Name", nestedClaim.CodeSystemName));
+            nestedItem.Items.Add(AddItemToTree("Display Name", nestedClaim.DisplayName));
+            nestedItem.Items.Add(AddItemToTree("Type", nestedClaim.Type));
+            nestedItem.Items.Add(AddItemToTree("Issued by", claim.OriginalIssuer));
+            return nestedItem;
+        }
+
+        private TreeViewItem AddItemToTree(string label, string value)
+        {
+            return new TreeViewItem() {Header = String.Format("{0}: {1}", label, value)};
+        }
+
+        private ClaimsIdentity ValidateSamlToken(SecurityToken securityToken)
+        {
+            var configuration = new SecurityTokenHandlerConfiguration
+            {
+                AudienceRestriction = {AudienceMode = AudienceUriMode.Never},
+                CertificateValidationMode = X509CertificateValidationMode.None,
+                RevocationMode = X509RevocationMode.NoCheck,
+                CertificateValidator = X509CertificateValidator.None
+            };
+
+            var registry = new TrustedIssuerNameRegistry();
+            //registry.AddTrustedIssuer("fb369e5dcf3ae82dcbe95a922baff3112fcde352", "McKesson");
+            //registry.AddTrustedIssuer("17bfb6a73bc53bbfdc64e4e64f77b206471e9c08", "self");
+            configuration.IssuerNameRegistry = registry;
+
+            var handler = SecurityTokenHandlerCollection.CreateDefaultSecurityTokenHandlerCollection(configuration);
+            var identity = handler.ValidateToken(securityToken).First();
+
+            return identity;
         }
 
         internal class ComboBoxPairs
