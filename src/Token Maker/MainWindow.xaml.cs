@@ -249,7 +249,7 @@ namespace CommonWell.Tools
                     new Claim(IUAClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
                     new Claim(IUAClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
                 }),
-                TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
+                TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
                 Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
             };
@@ -275,7 +275,7 @@ namespace CommonWell.Tools
                         new PurposeOfUseClaim(ComboBoxPurposeOfUse.Text, ComboBoxPurposeOfUse.SelectedValue.ToString())
                             .ToString())
                 }),
-                TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
+                TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
                 Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
             };
@@ -298,7 +298,7 @@ namespace CommonWell.Tools
                     new Claim(XspaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
                     new Claim(XspaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
                 }),
-                TokenIssuerName = (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text),
+                TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
                 Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
             };
@@ -307,6 +307,11 @@ namespace CommonWell.Tools
                 tokenDescriptor.Subject.AddClaim(new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
             }
             return tokenDescriptor;
+        }
+
+        private string SetTokenIssuerName()
+        {
+            return (string.IsNullOrEmpty(TextBoxIssuer.Text.Trim(' ')) ? "self" : TextBoxIssuer.Text);
         }
 
         private void ChooseCertificate_Click(object sender, RoutedEventArgs e)
@@ -491,6 +496,8 @@ namespace CommonWell.Tools
 
         private void SAMLValidate_Click(object sender, RoutedEventArgs e)
         {
+            TreeViewValidatedClaims.Items.Clear();
+
             if (string.IsNullOrEmpty(TextBoxSamlToken.Text)) return;
 
             try
@@ -499,7 +506,6 @@ namespace CommonWell.Tools
                 var samlToken2 = tokenHandler.ReadToken(new XmlTextReader(new StringReader(TextBoxSamlToken.Text)));
                 var identity = ValidateSamlToken(samlToken2);
 
-                TreeViewValidatedClaims.Items.Clear();
                 var parent = new TreeViewItem {Header = "Validated Claims"};
                 foreach (var item in identity.Claims)
                 {
@@ -547,22 +553,10 @@ namespace CommonWell.Tools
 
         private ClaimsIdentity ValidateSamlToken(SecurityToken securityToken)
         {
-            var configuration = new SecurityTokenHandlerConfiguration
-            {
-                AudienceRestriction = {AudienceMode = AudienceUriMode.Never},
-                CertificateValidationMode = X509CertificateValidationMode.None,
-                RevocationMode = X509RevocationMode.NoCheck,
-                CertificateValidator = X509CertificateValidator.None
-            };
-
-            var registry = new TrustedIssuerNameRegistry();
-            //registry.AddTrustedIssuer("fb369e5dcf3ae82dcbe95a922baff3112fcde352", "McKesson");
-            //registry.AddTrustedIssuer("17bfb6a73bc53bbfdc64e4e64f77b206471e9c08", "self");
-            configuration.IssuerNameRegistry = registry;
-
+            var configuration = new SecurityTokenHandlerConfiguration();
             var handler = SecurityTokenHandlerCollection.CreateDefaultSecurityTokenHandlerCollection(configuration);
+            handler.AddOrReplace(new CustomSaml2SecurityTokenHandler());
             var identity = handler.ValidateToken(securityToken).First();
-
             return identity;
         }
 

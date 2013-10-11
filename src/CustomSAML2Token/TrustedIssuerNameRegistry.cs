@@ -24,14 +24,12 @@ namespace CommonWell.Tools
             var x509Token = securityToken as X509SecurityToken;
             if (x509Token != null)
             {
-
                 // Here you would check thumbprint against data store of trusted issuers
                 return x509Token.Certificate.Thumbprint;
             }
             var rsaToken = securityToken as RsaSecurityToken;
             if (rsaToken != null)
             {
-
                 // Here you would check ID against data store of trusted issuers
                 return rsaToken.Id;
             }

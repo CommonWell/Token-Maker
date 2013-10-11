@@ -14,9 +14,16 @@
 // ============================================================================
 
 using System;
+using System.IdentityModel;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel.Security;
 using System.Text;
+using System.Threading;
 using System.Xml;
 
 namespace CommonWell.Tools
@@ -31,48 +38,15 @@ namespace CommonWell.Tools
             var registry = new TrustedIssuerNameRegistry();
             var handlerConfig = new SecurityTokenHandlerConfiguration
             {
-                AudienceRestriction = new AudienceRestriction(AudienceUriMode.Never),
+                AudienceRestriction = { AudienceMode = AudienceUriMode.Never },
+                CertificateValidationMode = X509CertificateValidationMode.None,
+                RevocationMode = X509RevocationMode.NoCheck,
                 MaxClockSkew = new TimeSpan(50000000),
                 IssuerNameRegistry = registry,
                 CertificateValidator = X509CertificateValidator.None
             };
             Configuration = handlerConfig;
         }
-
-        public override bool CanValidateToken
-        {
-            get { return true; }
-        }
-
-        public override bool CanWriteToken
-        {
-            get { return true; }
-        }
-
-        public override bool CanReadToken(XmlReader reader)
-        {
-            bool canRead = reader != null;
-            return canRead;
-        }
-
-        protected override string ReadAttributeValue(XmlReader reader, Saml2Attribute attribute)
-        {
-            if (attribute.Name != null)
-            {
-                return base.ReadAttributeValue(reader, attribute);
-            }
-            return "empty";
-        }
-
-        protected override Saml2Attribute ReadAttribute(XmlReader reader)
-        {
-            if (reader != null)
-            {
-                return base.ReadAttribute(reader);
-            }
-            return null;
-        }
-
 
         protected override void WriteAttributeValue(XmlWriter writer, string value, Saml2Attribute attribute)
         {
