@@ -14,16 +14,11 @@
 // ============================================================================
 
 using System;
-using System.IdentityModel;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Security;
 using System.Text;
-using System.Threading;
 using System.Xml;
 
 namespace CommonWell.Tools
@@ -38,7 +33,7 @@ namespace CommonWell.Tools
             var registry = new TrustedIssuerNameRegistry();
             var handlerConfig = new SecurityTokenHandlerConfiguration
             {
-                AudienceRestriction = { AudienceMode = AudienceUriMode.Never },
+                AudienceRestriction = {AudienceMode = AudienceUriMode.Never},
                 CertificateValidationMode = X509CertificateValidationMode.None,
                 RevocationMode = X509RevocationMode.NoCheck,
                 MaxClockSkew = new TimeSpan(50000000),

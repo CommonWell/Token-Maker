@@ -34,23 +34,23 @@
                 <Label Grid.Row="0" Grid.Column="0" Content="Organization:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="0" Grid.Column="2" Content="Organization ID:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center"  HorizontalContentAlignment="Right" Height="26" Width="Auto" />
+                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="1" Grid.Column="0" Content="Subject:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="1" Grid.Column="2" Content="Subject Role:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" Height="26" Width="Auto" />
                 <Label Grid.Row="2" Grid.Column="2" Content="NPI:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center"  HorizontalContentAlignment="Right" Height="26" Width="Auto" />
+                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="2" Grid.Column="0" Content="Purpose of Use:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center"  HorizontalContentAlignment="Right" Height="26" Width="Auto" />
+                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="3" Grid.Column="0" Content="Expiration:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center"  HorizontalContentAlignment="Right" Height="26" Width="Auto" />
+                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="3" Grid.Column="2" Content="Issuer:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
 
                 <TextBox Grid.Row="0" Grid.Column="1" x:Name="TextBoxOrganization" Text="St. Barnabas Hospital"
                          TabIndex="0" />
-                <TextBox Grid.Row="0" Grid.Column="3" x:Name="TextBoxOrganizationId" 
+                <TextBox Grid.Row="0" Grid.Column="3" x:Name="TextBoxOrganizationId"
                          Text="urn:oid:1.2.3.4.5.6.7.8"
                          TabIndex="1" />
                 <TextBox Grid.Row="1" Grid.Column="1" x:Name="TextBoxSubject" Text="Geoffrey Geiger" TabIndex="2" />
@@ -66,57 +66,6 @@
             </Grid>
 
         </Expander>
-        <Expander Header="Service" DockPanel.Dock="Top" IsExpanded="False">
-
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Content="Service Endpoint:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="0" Grid.Column="2" Content="Organization ID:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="1" Grid.Column="0" Content="Subject:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="1" Grid.Column="2" Content="Subject Role:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="2" Grid.Column="2" Content="NPI:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="2" Grid.Column="0" Content="Purpose of Use:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="3" Grid.Column="0" Content="Expiration:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-                <Label Grid.Row="3" Grid.Column="2" Content="Issuer:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" />
-
-                <TextBox Grid.Row="0" Grid.Column="1" x:Name="TextBoxServiceEndpoint" Text="https://"
-                         TabIndex="0" />
-                <TextBox Grid.Row="0" Grid.Column="3" x:Name="TextBox1"
-                         Text="urn:oid:1.2.3.4.5.6.7.8"
-                         TabIndex="1" />
-                <TextBox Grid.Row="1" Grid.Column="1" x:Name="TextBox2" Text="Geoffrey Geiger" TabIndex="2" />
-                <ComboBox Grid.Row="1" Grid.Column="3" Name="ComboBox1" Text="Subject Role" IsEditable="true"
-                          IsReadOnly="true" TabIndex="3" />
-                <ComboBox Grid.Row="2" Grid.Column="1" Name="ComboBox2" Text="Purpose of Use"
-                          IsEditable="true"
-                          IsReadOnly="true" TabIndex="4" />
-                <TextBox Grid.Row="2" Grid.Column="3" x:Name="TextBox3" TabIndex="5" />
-                <xctk:DateTimePicker Grid.Row="3" Grid.Column="1" Name="Date1"
-                                     Format="UniversalSortableDateTime" TabIndex="6" />
-                <TextBox Grid.Row="3" Grid.Column="3" x:Name="TextBox4" Text="self" TabIndex="7" />
-            </Grid>
-        </Expander>
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBar.ItemsPanel>
@@ -127,10 +76,10 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="115" />
-                            <ColumnDefinition Width="Auto" MinWidth="120"  />
-                            <ColumnDefinition MinWidth="20"  />
-                            <ColumnDefinition Width="78"/>
-                            <ColumnDefinition Width="Auto" MinWidth="117"  />
+                            <ColumnDefinition Width="Auto" MinWidth="120" />
+                            <ColumnDefinition MinWidth="20" />
+                            <ColumnDefinition Width="78" />
+                            <ColumnDefinition Width="Auto" MinWidth="117" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
@@ -266,28 +215,27 @@
                         </Grid.RowDefinitions>
 
                         <ToolBar Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
-                            <Button Content="Indent" Click="IndentSAML_Click" 
+                            <Button Content="Indent" Click="IndentSAML_Click"
                                     ToolTip="Once reformatted, token cannot be validated." />
-                            <Separator/>
-                            <Button Content="Validate" Click="SAMLValidate_Click" MinWidth="64" HorizontalAlignment="Left"/>
+                            <Separator />
+                            <Button Content="Validate" Click="SAMLValidate_Click" MinWidth="64"
+                                    HorizontalAlignment="Left" />
                         </ToolBar>
                         <DockPanel Grid.Column="0" Grid.Row="1">
                             <TextBox x:Name="TextBoxSamlToken" MaxLength="0" MaxLines="10000" FontFamily="Courier New"
                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                     TextWrapping="Wrap" AcceptsReturn="True" ContextMenu="{x:Null}" FontSize="10" ScrollViewer.CanContentScroll="True" />
+                                     TextWrapping="Wrap" AcceptsReturn="True" ContextMenu="{x:Null}" FontSize="10"
+                                     ScrollViewer.CanContentScroll="True" />
                         </DockPanel>
-                        <DockPanel Grid.Column="1" Grid.Row="1" Height="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <DockPanel Grid.Column="1" Grid.Row="1" Height="Auto"
+                                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                   ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <TreeView x:Name="TreeViewValidatedClaims" />
                         </DockPanel>
                     </Grid>
                 </DockPanel>
             </TabItem>
 
-            <TabItem Header="Enrollment" />
-
-            <TabItem Header="Record Location" />
-
-            <TabItem Header="Document Query/Retrieval" />
         </TabControl>
     </DockPanel>
 </Window>
