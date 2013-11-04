@@ -176,7 +176,11 @@ recommend that a file or class name and description of purpose be included on
 the same "printed page" as the copyright notice for easier identification within
 third-party archives.
 
+<<<<<<< HEAD
    Copyright [2013] [CommonWell Health Alliance]
+=======
+   Copyright 2013 CommonWell Health Alliance
+>>>>>>> 6a2090634fd878a4a1b613da276e33b0e38bd312
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
