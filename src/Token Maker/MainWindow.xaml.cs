@@ -15,7 +15,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IdentityModel.Policy;
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.IO;
@@ -23,6 +25,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel.Security.Tokens;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -232,6 +235,144 @@ namespace CommonWell.Tools
             return tokenHandler.WriteToken(token);
         }
 
+        private GenericXmlSecurityToken GenerateSAML2Token()
+        {
+            var signingCertificatePrivateKey = new X509Certificate2(Settings.Default.CertificatePath,
+                Settings.Default.Passphrase);
+            var encryptingCertificatePublicKey = signingCertificatePrivateKey;
+            //new X509Certificate2(@"C:\Users\ed2ny1e\Documents\CommonWell\Integration Certificates\McKesson.cer");
+            string signingAlgorithm = SignatureAlgorithm.Sha256;
+            string digestAlgorithm = DigestAlgorithm.Sha256;
+            SigningCredentials signingCredentials = null;
+            SymmetricProofDescriptor proof = CreateSymmetricProofDescriptor(encryptingCertificatePublicKey);
+
+            switch (ComboBoxSigningAlgorithm.SelectedValue.ToString())
+            {
+                case "SHA1":
+                    signingAlgorithm = SignatureAlgorithm.Sha1;
+                    break;
+                case "SHA256":
+                    signingAlgorithm = SignatureAlgorithm.Sha256;
+                    break;
+            }
+
+            switch (ComboBoxDigestAlgorithm.SelectedValue.ToString())
+            {
+                case "SHA1":
+                    digestAlgorithm = DigestAlgorithm.Sha1;
+                    break;
+                case "SHA256":
+                    digestAlgorithm = DigestAlgorithm.Sha256;
+                    break;
+            }
+
+            if (Rsa.IsChecked.HasValue && Rsa.IsChecked.Value)
+            {
+                var rsa = signingCertificatePrivateKey.PrivateKey as RSACryptoServiceProvider;
+                if (rsa != null)
+                {
+                    var rsaKey = new RsaSecurityKey(rsa);
+                    var rsaClause = new RsaKeyIdentifierClause(rsa);
+                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] {rsaClause});
+                    signingCredentials = new SigningCredentials(rsaKey, signingAlgorithm, digestAlgorithm, ski);
+                }
+            }
+            else
+            {
+                var clause =
+                    new X509SecurityToken(signingCertificatePrivateKey)
+                        .CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>();
+                var ski = new SecurityKeyIdentifier(clause);
+                signingCredentials = new X509SigningCredentials(signingCertificatePrivateKey, ski, signingAlgorithm,
+                    digestAlgorithm);
+            }
+
+            SecurityTokenDescriptor tokenDescriptor = BuildSAMLDescriptorUsingXspaProfile();
+            tokenDescriptor.TokenType = WSTrust.TokenType;
+            tokenDescriptor.SigningCredentials = signingCredentials;
+
+            if (CheckBoxEncrypt.IsChecked.HasValue && CheckBoxEncrypt.IsChecked.Value)
+            {
+                const string keyWrapAlgorithm = WSTrust.KeyWrapAlgorithm;
+                const string encryptionAlgorithm = WSTrust.EncryptionAlgorithm;
+                var encryptingCredentials = new EncryptedKeyEncryptingCredentials(encryptingCertificatePublicKey,
+                    keyWrapAlgorithm, WSTrust.KeySize, encryptionAlgorithm);
+                tokenDescriptor.EncryptingCredentials = encryptingCredentials;
+            }
+
+            switch (ComboBoxConfirmation.SelectedValue.ToString())
+            {
+                case "holder":
+                    if (AsymmetricKey.IsChecked != null && (bool) AsymmetricKey.IsChecked)
+                    {
+                        tokenDescriptor.Proof = CreateAsymmetricProofDescriptor(encryptingCertificatePublicKey);
+                    }
+                    else
+                    {
+                        tokenDescriptor.Proof = proof;
+                    }
+                    break;
+                case "sender":
+                    //TODO
+                    break;
+            }
+
+            var tokenHandler = new CustomSaml2SecurityTokenHandler();
+            tokenDescriptor.AddAuthenticationClaims("uurn:oasis:names:tc:SAML:2.0:ac:classes:X509");
+            var outputToken = tokenHandler.CreateToken(tokenDescriptor) as Saml2SecurityToken;
+
+            if (outputToken == null)
+            {
+                throw new Exception("Failed to create Saml2 Security token");
+            }
+
+            // turn token into a generic xml security token
+            var outputTokenString = outputToken.ToTokenXmlString();
+
+            // create attached and unattached references
+            var attachedReference = tokenHandler.CreateSecurityTokenReference(outputToken, true);
+            var unattachedReference = tokenHandler.CreateSecurityTokenReference(outputToken, false);
+
+            GenericXmlSecurityToken xmlToken;
+            if (ComboBoxConfirmation.SelectedValue.ToString().Equals("holder"))
+            {
+                xmlToken = new GenericXmlSecurityToken(
+                    GetElement(outputTokenString),
+                    new BinarySecretSecurityToken(proof.GetKeyBytes()),
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddHours(1),
+                    attachedReference,
+                    unattachedReference,
+                    new ReadOnlyCollection<IAuthorizationPolicy>(new List<IAuthorizationPolicy>()));
+            }
+            else
+            {
+                xmlToken = new GenericXmlSecurityToken(
+                    GetElement(outputTokenString),
+                    null,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddHours(8),
+                    attachedReference,
+                    unattachedReference,
+                    new ReadOnlyCollection<IAuthorizationPolicy>(new List<IAuthorizationPolicy>()));
+            }
+            return xmlToken;
+        }
+
+        private static AsymmetricProofDescriptor CreateAsymmetricProofDescriptor(X509Certificate2 proofCert)
+        {
+            var proofSki =
+                new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[]
+                {new X509SecurityToken(proofCert).CreateKeyIdentifierClause<X509SubjectKeyIdentifierClause>()});
+            return new AsymmetricProofDescriptor(proofSki);
+        }
+
+        private XmlElement GetElement(string xml)
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            return doc.DocumentElement;
+        }
 
         private SecurityTokenDescriptor BuildDescriptorUsingIUAProfile()
         {
@@ -358,77 +499,9 @@ namespace CommonWell.Tools
 
         private string BuildSamlToken()
         {
-            var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
-            string signingAlgorithm = SignatureAlgorithm.Sha256;
-            string digestAlgorithm = DigestAlgorithm.Sha256;
-            SigningCredentials signingCredentials = null;
-
-            switch (ComboBoxSigningAlgorithm.SelectedValue.ToString())
-            {
-                case "SHA1":
-                    signingAlgorithm = SignatureAlgorithm.Sha1;
-                    break;
-                case "SHA256":
-                    signingAlgorithm = SignatureAlgorithm.Sha256;
-                    break;
-            }
-
-            switch (ComboBoxDigestAlgorithm.SelectedValue.ToString())
-            {
-                case "SHA1":
-                    digestAlgorithm = DigestAlgorithm.Sha1;
-                    break;
-                case "SHA256":
-                    digestAlgorithm = DigestAlgorithm.Sha256;
-                    break;
-            }
-
-            if (Rsa.IsChecked.HasValue && Rsa.IsChecked.Value)
-            {
-                var rsa = certificate.PrivateKey as RSACryptoServiceProvider;
-                if (rsa != null)
-                {
-                    var rsaKey = new RsaSecurityKey(rsa);
-                    var rsaClause = new RsaKeyIdentifierClause(rsa);
-                    var ski = new SecurityKeyIdentifier(new SecurityKeyIdentifierClause[] {rsaClause});
-                    signingCredentials = new SigningCredentials(rsaKey, signingAlgorithm, digestAlgorithm, ski);
-                }
-            }
-            else
-            {
-                var clause =
-                    new X509SecurityToken(certificate).CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause>();
-                var ski = new SecurityKeyIdentifier(clause);
-                signingCredentials = new X509SigningCredentials(certificate, ski, signingAlgorithm, digestAlgorithm);
-            }
-
-            SecurityTokenDescriptor tokenDescriptor = BuildSAMLDescriptorUsingXspaProfile();
-            tokenDescriptor.TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
-            tokenDescriptor.SigningCredentials = signingCredentials;
-
-            if (CheckBoxEncrypt.IsChecked.HasValue && CheckBoxEncrypt.IsChecked.Value)
-            {
-                const string keyWrapAlgorithm = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
-                const string encryptionAlgorithm = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
-                var encryptingCredentials = new EncryptedKeyEncryptingCredentials(certificate, keyWrapAlgorithm, 256,
-                    encryptionAlgorithm);
-                tokenDescriptor.EncryptingCredentials = encryptingCredentials;
-            }
-
-            switch (ComboBoxConfirmation.SelectedValue.ToString())
-            {
-                case "holder":
-                    tokenDescriptor.Proof = CreateProofDescriptor(certificate);
-                    break;
-                case "sender":
-                    //TODO: need to find way to update SubjectConfirmation Method
-                    break;
-            }
-
+            var xmlToken = GenerateSAML2Token();
+            var token = (Saml2SecurityToken) xmlToken.ToSecurityToken();
             var tokenHandler = new CustomSaml2SecurityTokenHandler();
-            tokenDescriptor.AddAuthenticationClaims("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
-            var token = tokenHandler.CreateToken(tokenDescriptor) as Saml2SecurityToken;
-
             var settings = new XmlWriterSettings {Indent = false, Encoding = Encoding.Default};
             var sbuilder = new StringBuilder();
             using (XmlWriter writer = XmlWriter.Create(sbuilder, settings))
@@ -439,11 +512,9 @@ namespace CommonWell.Tools
             return tokenString;
         }
 
-        private static SymmetricProofDescriptor CreateProofDescriptor(X509Certificate2 encryptingCertificate)
+        private static SymmetricProofDescriptor CreateSymmetricProofDescriptor(X509Certificate2 encryptingCertificate)
         {
-            return new SymmetricProofDescriptor(
-                256,
-                new X509EncryptingCredentials(encryptingCertificate));
+            return new SymmetricProofDescriptor(WSTrust.KeySize, new X509EncryptingCredentials(encryptingCertificate));
         }
 
         private void TxtPassphrase_TextChanged(object sender, TextChangedEventArgs e)
@@ -534,7 +605,7 @@ namespace CommonWell.Tools
         {
             var nestedClaim = new T();
             nestedClaim.Load(claim.Value);
-            var nestedItem = new TreeViewItem() {Header = claim.Type};
+            var nestedItem = new TreeViewItem {Header = claim.Type};
             nestedItem.Items.Add(AddItemToTree("Code", nestedClaim.Code));
             nestedItem.Items.Add(AddItemToTree("Code System", nestedClaim.CodeSystem));
             nestedItem.Items.Add(AddItemToTree("Code System Name", nestedClaim.CodeSystemName));
@@ -546,7 +617,7 @@ namespace CommonWell.Tools
 
         private TreeViewItem AddItemToTree(string label, string value)
         {
-            return new TreeViewItem() {Header = String.Format("{0}: {1}", label, value)};
+            return new TreeViewItem {Header = String.Format("{0}: {1}", label, value)};
         }
 
         private ClaimsIdentity ValidateSamlToken(SecurityToken securityToken)
@@ -556,6 +627,11 @@ namespace CommonWell.Tools
             handler.AddOrReplace(new CustomSaml2SecurityTokenHandler());
             var identity = handler.ValidateToken(securityToken).First();
             return identity;
+        }
+
+        private void ComboBoxConfirmation_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ProofKeyPanel.IsEnabled = ComboBoxConfirmation.SelectedValue.ToString().Equals("holder");
         }
 
         internal class ComboBoxPairs

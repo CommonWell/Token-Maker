@@ -177,7 +177,20 @@
                             <Separator Padding="10" />
                             <StackPanel>
                                 <Label>Confirmation</Label>
-                                <ComboBox Name="ComboBoxConfirmation" />
+                                <ComboBox Name="ComboBoxConfirmation" SelectionChanged="ComboBoxConfirmation_Changed"/>
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <StackPanel Name="ProofKeyPanel" IsEnabled="False">
+                                <Label>Proof Key</Label>
+                                <RadioButton GroupName="ProofKeyOption" Name="AsymmetricKey" Content="Asymmetric" IsChecked="True" />
+                                <RadioButton GroupName="ProofKeyOption" Name="SymmetricKey" Content="Symmetric" />
+                            </StackPanel>
+                            <Separator Padding="10" />
+                            <StackPanel>
+                                <Label>Key Info</Label>
+                                <RadioButton GroupName="KeyInfoOption" Name="X509" Content="X.509" IsChecked="True" />
+                                <RadioButton GroupName="KeyInfoOption" Name="Rsa" Content="RSA" Checked="Rsa_Checked"
+                                             Unchecked="Rsa_Unchecked" />
                             </StackPanel>
                             <Separator Padding="10" />
                             <StackPanel>
@@ -189,13 +202,7 @@
                                 <Label>Digest Algorithm:</Label>
                                 <ComboBox Name="ComboBoxDigestAlgorithm" />
                             </StackPanel>
-                            <Separator Padding="10" />
-                            <StackPanel>
-                                <Label>Key Info</Label>
-                                <RadioButton GroupName="KeyInfoOption" Name="X509" Content="X.509" IsChecked="True" />
-                                <RadioButton GroupName="KeyInfoOption" Name="Rsa" Content="RSA" Checked="Rsa_Checked"
-                                             Unchecked="Rsa_Unchecked" />
-                            </StackPanel>
+
                             <Separator Padding="10" />
                             <CheckBox Name="CheckBoxEncrypt" Checked="CheckBoxEncrypt_Checked"
                                       Unchecked="CheckBoxEncrypt_Unchecked">

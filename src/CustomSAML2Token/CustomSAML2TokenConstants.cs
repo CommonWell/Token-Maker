@@ -37,4 +37,18 @@ namespace CommonWell.Tools
         public const string Sha1 = "http://www.w3.org/2000/09/xmldsig#sha1";
         public const string Sha256 = "http://www.w3.org/2001/04/xmlenc#sha256";
     }
+
+    public static class WSTrust
+    {
+        public const string TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
+        public const string SymmetricKey = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/SymmetricKey";
+        public const int KeySize = 256;
+        public const string AsymmetricKey = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/PublicKey";
+        public const string BearerKey = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/Bearer";
+        public const string KeyWrapAlgorithm = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
+        public const string EncryptWith = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+        public const string SignWith = "http://www.w3.org/2000/09/xmldsig#hmac-sha1";
+        public const string CanonicalizationAlgorithm = "http://www.w3.org/2001/10/xml-exc-c14n#";
+        public const string EncryptionAlgorithm = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+    }
 }
