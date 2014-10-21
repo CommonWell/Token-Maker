@@ -226,13 +226,24 @@ namespace CommonWell.Tools
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var certificate = new X509Certificate2(Settings.Default.CertificatePath, Settings.Default.Passphrase);
-            SecurityTokenDescriptor tokenDescriptor = (Iua.IsChecked.HasValue && Iua.IsChecked.Value)
-                ? BuildDescriptorUsingIUAProfile()
-                : BuildJWTDescriptorUsingXspaProfile();
+            SecurityTokenDescriptor tokenDescriptor;
+            if (Iua.IsChecked.HasValue && Iua.IsChecked.Value)
+            {
+                tokenDescriptor = BuildDescriptorUsingIUAProfile();
+            }
+            else if (CustomXspa.IsChecked.HasValue && CustomXspa.IsChecked.Value)
+            {
+                tokenDescriptor = BuildJWTDescriptorUsingXspaCustomProfile();
+            }
+            else
+            {
+                tokenDescriptor = BuildJWTDescriptorUsingXspaProfile();
+            }
+        
             tokenDescriptor.TokenType = "JWT";
             tokenDescriptor.SigningCredentials = new X509SigningCredentials(certificate);
-            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);            
+            return tokenHandler.WriteToken(token);            
         }
 
         private GenericXmlSecurityToken GenerateSAML2Token()
@@ -444,6 +455,33 @@ namespace CommonWell.Tools
             if (!String.IsNullOrEmpty(TextBoxNpi.Text))
             {
                 tokenDescriptor.Subject.AddClaim(new Claim(XspaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
+            }
+            return tokenDescriptor;
+        }
+
+        private SecurityTokenDescriptor BuildJWTDescriptorUsingXspaCustomProfile()
+        {
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(CustomXpaClaimTypes.SubjectIdentifier, TextBoxSubject.Text),
+                    new Claim(CustomXpaClaimTypes.SubjectRole, ComboBoxSubjectRole.SelectedValue.ToString()),
+                    new Claim(CustomXpaClaimTypes.SubjectOrganization, TextBoxOrganization.Text),
+                    new Claim(CustomXpaClaimTypes.OrganizationIdentifier, TextBoxOrganizationId.Text),
+                    new Claim(CustomXpaClaimTypes.PurposeOfUse, ComboBoxPurposeOfUse.SelectedValue.ToString())
+                }),
+                TokenIssuerName = SetTokenIssuerName(),
+                AppliesToAddress = CustomXpaClaimTypes.AppliesToAddress,
+                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+            };
+            if (!String.IsNullOrEmpty(TextBoxNpi.Text))
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(CustomXpaClaimTypes.NationalProviderIdentifier, TextBoxNpi.Text));
+            }
+            if (!String.IsNullOrEmpty(TextPayloadHash.Text))
+            {
+                tokenDescriptor.Subject.AddClaim(new Claim(CustomXpaClaimTypes.PayLoadHash, TextPayloadHash.Text.Trim()));
             }
             return tokenDescriptor;
         }
