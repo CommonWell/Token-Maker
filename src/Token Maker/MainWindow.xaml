@@ -22,6 +22,8 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
@@ -34,6 +36,8 @@
                 <Label Grid.Row="0" Grid.Column="0" Content="Organization:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="0" Grid.Column="2" Content="Organization ID:" HorizontalAlignment="Right"
+                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
+                <Label Grid.Row="0" Grid.Column="4" Content="Payload Hash:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="1" Grid.Column="0" Content="Subject:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
@@ -53,6 +57,7 @@
                 <TextBox Grid.Row="0" Grid.Column="3" x:Name="TextBoxOrganizationId"
                          Text="urn:oid:1.2.3.4.5.6.7.8"
                          TabIndex="1" />
+                <xctk:MultiLineTextEditor Grid.Row="0" Grid.Column="5" x:Name="TextPayloadHash"></xctk:MultiLineTextEditor>                
                 <TextBox Grid.Row="1" Grid.Column="1" x:Name="TextBoxSubject" Text="Geoffrey Geiger" TabIndex="2" />
                 <ComboBox Grid.Row="1" Grid.Column="3" Name="ComboBoxSubjectRole" Text="Subject Role" IsEditable="true"
                           IsReadOnly="true" TabIndex="3" />
@@ -120,6 +125,8 @@
                                 <RadioButton GroupName="ProfileOption" Name="Xspa" Content="XSPA" IsChecked="True"
                                              VerticalAlignment="Center" />
                                 <RadioButton GroupName="ProfileOption" Name="Iua" Content="IUA"
+                                             VerticalAlignment="Center" Margin="7,0,0,0" />
+                                <RadioButton GroupName="ProfileOption" Name="CustomXspa" Content="XPA with Payload Hash"
                                              VerticalAlignment="Center" Margin="7,0,0,0" />
                             </StackPanel>
                         </ToolBar>
