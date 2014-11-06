@@ -41,6 +41,6 @@ namespace CommonWell.Tools
         public const string AppliesToAddress = "urn:commonwellalliance.org";
         /// <summary>urn:payloadhash</summary>
         /// <remarks>Hash of the pay load.</remarks>
-        public const string PayLoadHash = "urn:payload-hash";
+        public const string PayLoadHash = "urn:commonwell-alliance:payload-hash";
     }
 }
