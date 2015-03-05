@@ -50,7 +50,9 @@ namespace CommonWell.Tools
             PopulatePurposeOfUse();
             PopulateAlgorithms();
             PopulateSAMLConfirmations();
-            DateExpiration.Value = DateTime.Now.AddMinutes(5).ToUniversalTime();
+            //System.IdentityModel.Protocols.WSTrust.Lifetime converts this to a utc
+            //so user should pick it as local time
+            DateExpiration.Value = DateTime.Now.AddMinutes(5); 
             SetControlsFromSettings();
         }
 
@@ -401,7 +403,7 @@ namespace CommonWell.Tools
                 }),
                 TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
-                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+                Lifetime = new Lifetime(DateTime.Now, DateExpiration.Value),
             };
             if (!String.IsNullOrEmpty(TextBoxNpi.Text))
             {
@@ -427,7 +429,7 @@ namespace CommonWell.Tools
                 }),
                 TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
-                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+                Lifetime = new Lifetime(DateTime.Now, DateExpiration.Value),
             };
             if (!String.IsNullOrEmpty(TextBoxNpi.Text))
             {
@@ -450,7 +452,7 @@ namespace CommonWell.Tools
                 }),
                 TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = IUAClaimTypes.AppliesToAddress,
-                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+                Lifetime = new Lifetime(DateTime.Now, DateExpiration.Value),
             };
             if (!String.IsNullOrEmpty(TextBoxNpi.Text))
             {
@@ -473,7 +475,7 @@ namespace CommonWell.Tools
                 }),
                 TokenIssuerName = SetTokenIssuerName(),
                 AppliesToAddress = CustomXpaClaimTypes.AppliesToAddress,
-                Lifetime = new Lifetime(DateTime.Now.ToUniversalTime(), DateExpiration.Value),
+                Lifetime = new Lifetime(DateTime.Now, DateExpiration.Value),
             };
             if (!String.IsNullOrEmpty(TextBoxNpi.Text))
             {
