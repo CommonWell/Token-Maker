@@ -48,7 +48,7 @@
                 <Label Grid.Row="2" Grid.Column="0" Content="Purpose of Use:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
                 <Label Grid.Row="3" Grid.Column="0" Content="Expiration:" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
+                       VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" ToolTip="enter using local date/time" />
                 <Label Grid.Row="3" Grid.Column="2" Content="Issuer:" HorizontalAlignment="Right"
                        VerticalAlignment="Center" HorizontalContentAlignment="Right" Height="26" Width="Auto" />
 
